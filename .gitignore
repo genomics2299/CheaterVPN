@@ -11,3 +11,5 @@ captures/
 *.apk
 *.aab
 *.keystore
+keystore.properties
+.keystore_pw.txt
