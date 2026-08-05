@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CheaterVPN</string>
+    <string name="main_title">Разработчик Genom1cs</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="config_hint">Paste your AWG config here...</string>
+    <string name="widget_description">VPN on/off toggle</string>
+
+    <string name="servers_title">Servers</string>
+    <string name="import_config">Import config</string>
+
+    <string name="vpn_permission_denied">VPN permission denied</string>
+    <string name="failed_read_config">Failed to read config</string>
+    <string name="empty_config">Empty config file</string>
+    <string name="invalid_config">Invalid config</string>
+    <string name="invalid_config_detail">Invalid config: %1$s</string>
+    <string name="config_imported">Config already imported</string>
+    <string name="server_added">Server added</string>
+    <string name="select_server_first">Select a server first</string>
+    <string name="selected_server">Selected: %1$s</string>
+    <string name="server_deleted">Server deleted</string>
+    <string name="disconnect_first">Disconnect first</string>
+
+    <string name="vpn_connected">VPN connected</string>
+    <string name="vpn_disconnected">VPN disconnected</string>
+    <string name="connection_failed">Connection failed: %1$s</string>
+    <string name="connection_failed_generic">Connection failed</string>
+    <string name="error_generic">Error: %1$s</string>
+    <string name="vpn_restarted_network">VPN restarted on new network</string>
+    <string name="vpn_restart_failed">VPN restart failed: %1$s</string>
+
+    <string name="notif_channel">VPN status</string>
+    <string name="notif_channel_desc">Shows when the VPN is connected</string>
+    <string name="notif_title">VPN connected</string>
+    <string name="notif_disconnect_action">Disconnect</string>
+
+    <string name="vpn_permission_required">VPN permission required</string>
+    <string name="tile_label">VPN</string>
+
+    <string name="err_vpn_not_authorized">VPN permission not granted</string>
+    <string name="err_tunnel_missing_config">No configuration</string>
+    <string name="err_unable_start_vpn">Unable to start VPN service</string>
+    <string name="err_tun_creation">Unable to create tunnel interface</string>
+    <string name="err_go_activation">Tunnel activation failed (code %1$s)</string>
+    <string name="err_dns_resolution">DNS resolution failed</string>
+    <string name="err_service_not_running">VPN service is not running</string>
+    <string name="err_generic">Unknown error</string>
+
+    <string name="split_tunnel_title">Split tunneling</string>
+    <string name="split_tunnel_hint">Choose apps to bypass the VPN tunnel</string>
+    <string name="split_tunnel_exclude">Exclude selected</string>
+    <string name="split_tunnel_include">Only selected</string>
+    <string name="split_tunnel_btn">Split tunneling</string>
+    <string name="split_tunnel_search">Search apps by name</string>
+    <string name="split_tunnel_back">← Back to main</string>
+</resources>

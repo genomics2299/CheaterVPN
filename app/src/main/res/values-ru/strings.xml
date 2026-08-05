@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CheaterVPN</string>
+    <string name="main_title">Разработчик Genom1cs</string>
+    <string name="connect">Подключить</string>
+    <string name="disconnect">Отключить</string>
+    <string name="connected">Подключено</string>
+    <string name="disconnected">Отключено</string>
+    <string name="config_hint">Вставьте конфиг AWG здесь...</string>
+    <string name="widget_description">Переключатель VPN</string>
+
+    <string name="servers_title">Серверы</string>
+    <string name="import_config">Импорт конфига</string>
+
+    <string name="vpn_permission_denied">Нет разрешения на VPN</string>
+    <string name="failed_read_config">Не удалось прочитать конфиг</string>
+    <string name="empty_config">Пустой файл конфига</string>
+    <string name="invalid_config">Неверный конфиг</string>
+    <string name="invalid_config_detail">Неверный конфиг: %1$s</string>
+    <string name="config_imported">Конфиг уже импортирован</string>
+    <string name="server_added">Сервер добавлен</string>
+    <string name="select_server_first">Сначала выберите сервер</string>
+    <string name="selected_server">Выбрано: %1$s</string>
+    <string name="server_deleted">Сервер удалён</string>
+    <string name="disconnect_first">Сначала отключитесь</string>
+
+    <string name="vpn_connected">VPN подключён</string>
+    <string name="vpn_disconnected">VPN отключён</string>
+    <string name="connection_failed">Ошибка подключения: %1$s</string>
+    <string name="connection_failed_generic">Ошибка подключения</string>
+    <string name="error_generic">Ошибка: %1$s</string>
+    <string name="vpn_restarted_network">VPN перезапущен на новой сети</string>
+    <string name="vpn_restart_failed">Не удалось перезапустить VPN: %1$s</string>
+
+    <string name="notif_channel">Статус VPN</string>
+    <string name="notif_channel_desc">Показывается, когда VPN подключён</string>
+    <string name="notif_title">VPN подключён</string>
+    <string name="notif_disconnect_action">Отключить</string>
+
+    <string name="vpn_permission_required">Требуется разрешение VPN</string>
+    <string name="tile_label">VPN</string>
+
+    <string name="err_vpn_not_authorized">Не предоставлено разрешение VPN</string>
+    <string name="err_tunnel_missing_config">Нет конфигурации</string>
+    <string name="err_unable_start_vpn">Не удалось запустить VPN-сервис</string>
+    <string name="err_tun_creation">Не удалось создать туннельный интерфейс</string>
+    <string name="err_go_activation">Не удалось активировать туннель (код %1$s)</string>
+    <string name="err_dns_resolution">Ошибка разрешения DNS</string>
+    <string name="err_service_not_running">VPN-сервис не запущен</string>
+    <string name="err_generic">Неизвестная ошибка</string>
+
+    <string name="split_tunnel_title">Раздельное туннелирование</string>
+    <string name="split_tunnel_hint">Выберите приложения, которые не пойдут через VPN-туннель</string>
+    <string name="split_tunnel_exclude">Исключить выбранные</string>
+    <string name="split_tunnel_include">Только выбранные</string>
+    <string name="split_tunnel_btn">Раздельное туннелирование</string>
+    <string name="split_tunnel_search">Поиск приложений по названию</string>
+    <string name="split_tunnel_back">← На главный экран</string>
+</resources>
