@@ -18,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import com.vpnapp.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,6 +29,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.amnezia.awg.backend.BackendException
 import org.amnezia.awg.config.Config
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.util.zip.Inflater
 
 class MainActivity : AppCompatActivity() {
 
@@ -72,6 +77,18 @@ class MainActivity : AppCompatActivity() {
         }
         val msg = e.cause?.message ?: e.message
         return if (msg.isNullOrBlank()) e.javaClass.simpleName else msg
+    }
+
+    private fun exceptionDetail(e: Throwable?): String {
+        var current = e
+        var depth = 0
+        while (current != null && depth < 6) {
+            val msg = current.message
+            if (!msg.isNullOrBlank()) return msg
+            current = current.cause
+            depth++
+        }
+        return e?.toString() ?: "null"
     }
 
     private fun logError(tag: String, message: String, e: Exception) {
@@ -121,6 +138,17 @@ class MainActivity : AppCompatActivity() {
         uri?.let { importConfig(it) }
     }
 
+    private val scanLauncher = registerForActivityResult(ScanContract()) { result ->
+        result.contents?.let { contents ->
+            val config = decodeQrConfig(contents)
+            if (config != null) {
+                lifecycleScope.launch { importConfigText(config, null) }
+            } else {
+                Toast.makeText(this, getString(R.string.invalid_qr_config), Toast.LENGTH_LONG).show()
+            }
+        } ?: Toast.makeText(this, getString(R.string.qr_scan_cancelled), Toast.LENGTH_SHORT).show()
+    }
+
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { }
@@ -144,6 +172,14 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnImportConfig.setOnClickListener {
             configPickerLauncher.launch(arrayOf("*/*"))
+        }
+
+        binding.btnScanQr.setOnClickListener {
+            val options = ScanOptions()
+                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                .setPrompt(getString(R.string.scan_qr_prompt))
+                .setBeepEnabled(false)
+            scanLauncher.launch(options)
         }
 
         binding.btnSplitTunnel.setOnClickListener {
@@ -302,45 +338,147 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
 
-            val parseResult = runCatching { awgManager.parseConfigFile(text) }
-            if (parseResult.isFailure) {
-                Toast.makeText(this@MainActivity, getString(R.string.invalid_config_detail, parseResult.exceptionOrNull()?.message), Toast.LENGTH_LONG).show()
-                return@launch
-            }
+            importConfigText(text, fileDisplayName(uri))
+        }
+    }
 
-            val endpoint = Server.parseEndpoint(text)
-            var name = fileDisplayName(uri).substringBeforeLast('.').ifEmpty { "Server" }
-            var country = ""
-            var countryCode = ""
-            if (endpoint != null) {
-                CountryResolver.resolveCountry(endpoint.first)?.let { (c, code) ->
-                    country = c
-                    countryCode = code
-                    name = c
+    private suspend fun importConfigText(text: String, displayName: String?) {
+        if (text.isBlank()) {
+            Toast.makeText(this, getString(R.string.empty_config), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val parseResult = runCatching { awgManager.parseConfigFile(text) }
+        if (parseResult.isFailure) {
+            Toast.makeText(this, getString(R.string.invalid_config_detail, exceptionDetail(parseResult.exceptionOrNull())), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val endpoint = Server.parseEndpoint(text)
+        var name = displayName?.substringBeforeLast('.')?.ifEmpty { null } ?: "Server"
+        var country = ""
+        var countryCode = ""
+        if (endpoint != null) {
+            CountryResolver.resolveCountry(endpoint.first)?.let { (c, code) ->
+                country = c
+                countryCode = code
+                name = c
+            }
+        }
+
+        val server = Server(
+            id = System.currentTimeMillis().toString(),
+            name = name,
+            country = country,
+            countryCode = countryCode,
+            host = endpoint?.first.orEmpty(),
+            port = endpoint?.second ?: 0,
+            config = text,
+        )
+
+        if (servers.any { it.config == text }) {
+            Toast.makeText(this, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        servers = servers + server
+        serverStore.save(servers)
+        adapter.submitList(servers)
+        startPing(server)
+        Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun decodeQrConfig(contents: String): String? {
+        val trimmed = contents.trim()
+        configFromText(trimmed)?.let { return sanitizeConfig(it) }
+
+        val body = Regex("""^[\w+.-]+://(.+)$""").find(trimmed)?.groupValues?.get(1) ?: trimmed
+        val bytes = base64Decode(body) ?: return null
+
+        configFromText(String(bytes, Charsets.UTF_8))?.let { return sanitizeConfig(it) }
+
+        listOf(false, true).forEach { skip4 ->
+            inflate(bytes, skip4, raw = false)?.let { configFromText(it)?.let { cfg -> return sanitizeConfig(cfg) } }
+            inflate(bytes, skip4, raw = true)?.let { configFromText(it)?.let { cfg -> return sanitizeConfig(cfg) } }
+        }
+        return null
+    }
+
+    private fun sanitizeConfig(text: String): String {
+        val lower = text.lowercase()
+        val ifIdx = lower.indexOf("[interface]")
+        val peerIdx = lower.indexOf("[peer]")
+        val idx = when {
+            ifIdx == -1 && peerIdx == -1 -> return text
+            ifIdx == -1 -> peerIdx
+            peerIdx == -1 -> ifIdx
+            else -> minOf(ifIdx, peerIdx)
+        }
+        return if (idx > 0) text.substring(idx) else text
+    }
+
+    private fun configFromText(text: String): String? {
+        if (looksLikeConfig(text)) return text
+        return extractAmneziaConfig(text)?.takeIf { looksLikeConfig(it) }
+    }
+
+    private fun looksLikeConfig(text: String): Boolean {
+        return Regex("""(?im)^\s*\[(interface|peer)\]""").containsMatchIn(text)
+    }
+
+    private fun base64Decode(encoded: String): ByteArray? {
+        val cleaned = encoded.filterNot { it.isWhitespace() }
+        if (cleaned.isEmpty()) return null
+        val padded = cleaned + "=".repeat((4 - cleaned.length % 4) % 4)
+        listOf(
+            android.util.Base64.NO_WRAP,
+            android.util.Base64.NO_WRAP or android.util.Base64.URL_SAFE,
+        ).forEach { flags ->
+            runCatching { android.util.Base64.decode(padded, flags) }.getOrNull()?.let { return it }
+        }
+        return null
+    }
+
+    private fun inflate(data: ByteArray, skip4: Boolean, raw: Boolean): String? {
+        return runCatching {
+            val offset = if (skip4 && data.size > 4) 4 else 0
+            val inflater = Inflater(raw)
+            inflater.setInput(data, offset, data.size - offset)
+            val out = ByteArrayOutputStream()
+            val buf = ByteArray(4096)
+            while (!inflater.finished()) {
+                val count = inflater.inflate(buf)
+                if (count == 0) break
+                out.write(buf, 0, count)
+            }
+            inflater.end()
+            out.toString(Charsets.UTF_8.name())
+        }.getOrNull()
+    }
+
+    private fun extractAmneziaConfig(text: String): String? {
+        if (!text.trimStart().startsWith("{")) return null
+        return runCatching {
+            val root = JSONObject(text)
+            val containers = root.optJSONArray("containers")
+            if (containers != null) {
+                for (i in 0 until containers.length()) {
+                    val container = containers.optJSONObject(i) ?: continue
+                    for (proto in listOf("awg", "wg")) {
+                        val protoObj = container.optJSONObject(proto) ?: continue
+                        val lastConfig = protoObj.optString("last_config")
+                        if (lastConfig.isNotEmpty()) {
+                            val inner = JSONObject(lastConfig)
+                            val config = inner.optString("config")
+                            if (config.isNotEmpty()) return config
+                        }
+                        val directConfig = protoObj.optString("config")
+                        if (directConfig.isNotEmpty()) return directConfig
+                    }
                 }
             }
-
-            val server = Server(
-                id = System.currentTimeMillis().toString(),
-                name = name,
-                country = country,
-                countryCode = countryCode,
-                host = endpoint?.first.orEmpty(),
-                port = endpoint?.second ?: 0,
-                config = text,
-            )
-
-            if (servers.any { it.config == text }) {
-                Toast.makeText(this@MainActivity, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            servers = servers + server
-            serverStore.save(servers)
-            adapter.submitList(servers)
-            startPing(server)
-            Toast.makeText(this@MainActivity, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
-        }
+            root.optString("config").takeIf { it.isNotEmpty() }
+        }.getOrNull()
     }
 
     private fun fileDisplayName(uri: android.net.Uri): String {
@@ -466,6 +604,7 @@ class MainActivity : AppCompatActivity() {
             else getColor(android.R.color.darker_gray)
         )
         binding.btnImportConfig.isEnabled = !isConnected
+        binding.btnScanQr.isEnabled = !isConnected
     }
 
     override fun onDestroy() {

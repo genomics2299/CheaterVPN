@@ -11,6 +11,10 @@
 
     <string name="servers_title">Серверы</string>
     <string name="import_config">Импорт конфига</string>
+    <string name="scan_qr">QR-код</string>
+    <string name="scan_qr_prompt">Наведите камеру на QR-код AmneziaWG/WireGuard</string>
+    <string name="invalid_qr_config">Неверный конфиг в QR-коде</string>
+    <string name="qr_scan_cancelled">Сканирование отменено</string>
 
     <string name="vpn_permission_denied">Нет разрешения на VPN</string>
     <string name="failed_read_config">Не удалось прочитать конфиг</string>

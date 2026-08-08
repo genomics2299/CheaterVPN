@@ -78,4 +78,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
 
     implementation("com.zaneschepke:amneziawg-android:2.3.7")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 }

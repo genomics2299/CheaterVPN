@@ -54,19 +54,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnImportConfig"
+    <LinearLayout
+        android:id="@+id/layoutImportRow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:text="@string/import_config"
-        android:textSize="13sp"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        app:cornerRadius="20dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/btnToggle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImportConfig"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:text="@string/import_config"
+            android:textSize="13sp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:cornerRadius="20dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScanQr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:text="@string/scan_qr"
+            android:textSize="13sp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:cornerRadius="20dp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvServersTitle"
@@ -76,7 +95,7 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/btnImportConfig"
+        app:layout_constraintTop_toBottomOf="@id/layoutImportRow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
