@@ -6,16 +6,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnBackToMain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:text="@string/split_tunnel_back"
-        android:textSize="13sp"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        app:cornerRadius="20dp" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -56,16 +46,33 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:minHeight="40dp"
+                    android:minWidth="0dp"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:layout_marginEnd="4dp"
                     android:text="@string/split_tunnel_exclude"
-                    android:textSize="14sp" />
+                    android:textAllCaps="true"
+                    android:textSize="13sp"
+                    android:textColor="@color/btn_toggle_text"
+                    android:background="@drawable/bg_toggle_pill" />
 
                 <RadioButton
                     android:id="@+id/radioInclude"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:minHeight="40dp"
+                    android:minWidth="0dp"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
                     android:text="@string/split_tunnel_include"
-                    android:textSize="14sp" />
+                    android:textAllCaps="true"
+                    android:textSize="13sp"
+                    android:textColor="@color/btn_toggle_text"
+                    android:background="@drawable/bg_toggle_pill" />
             </RadioGroup>
 
             <EditText
@@ -95,5 +102,17 @@
         android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:paddingBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBackToMain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="40dp"
+        android:text="@string/split_tunnel_back"
+        android:textSize="13sp"
+        app:cornerRadius="28dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="35dp" />
 
 </LinearLayout>

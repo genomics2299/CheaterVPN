@@ -55,8 +55,9 @@
 
     <string name="split_tunnel_title">Split tunneling</string>
     <string name="split_tunnel_hint">Choose apps to bypass the VPN tunnel</string>
-    <string name="split_tunnel_exclude">Exclude selected</string>
-    <string name="split_tunnel_include">Only selected</string>
+    <string name="split_tunnel_hint_include">Choose apps that go through the VPN tunnel</string>
+    <string name="split_tunnel_exclude">Exclude\nselected</string>
+    <string name="split_tunnel_include">Only\nselected</string>
     <string name="split_tunnel_btn">Split tunneling</string>
     <string name="split_tunnel_search">Search apps by name</string>
     <string name="split_tunnel_back">← Back to main</string>

@@ -55,8 +55,9 @@
 
     <string name="split_tunnel_title">Раздельное туннелирование</string>
     <string name="split_tunnel_hint">Выберите приложения, которые не пойдут через VPN-туннель</string>
-    <string name="split_tunnel_exclude">Исключить выбранные</string>
-    <string name="split_tunnel_include">Только выбранные</string>
+    <string name="split_tunnel_hint_include">Выберите приложения, которые пойдут через VPN-туннель</string>
+    <string name="split_tunnel_exclude">Исключить\nвыбранные</string>
+    <string name="split_tunnel_include">Только\nвыбранные</string>
     <string name="split_tunnel_btn">Раздельное туннелирование</string>
     <string name="split_tunnel_search">Поиск приложений по названию</string>
     <string name="split_tunnel_back">← На главный экран</string>

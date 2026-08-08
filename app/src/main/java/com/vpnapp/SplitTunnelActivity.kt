@@ -38,16 +38,19 @@ class SplitTunnelActivity : AppCompatActivity() {
 
         binding.btnBackToMain.setOnClickListener { finish() }
 
-        if (store.mode() == SplitTunnelStore.Mode.INCLUDE) {
+        val mode = store.mode()
+        if (mode == SplitTunnelStore.Mode.INCLUDE) {
             binding.radioInclude.isChecked = true
         } else {
             binding.radioExclude.isChecked = true
         }
+        updateModeHint(mode)
         binding.rgMode.setOnCheckedChangeListener { _, checkedId ->
-            store.setMode(
+            val newMode =
                 if (checkedId == binding.radioInclude.id) SplitTunnelStore.Mode.INCLUDE
                 else SplitTunnelStore.Mode.EXCLUDE
-            )
+            store.setMode(newMode)
+            updateModeHint(newMode)
         }
 
         binding.etSearch.addTextChangedListener(object : TextWatcher {
@@ -57,6 +60,13 @@ class SplitTunnelActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
+    }
+
+    private fun updateModeHint(mode: SplitTunnelStore.Mode) {
+        binding.tvHint.setText(
+            if (mode == SplitTunnelStore.Mode.INCLUDE) R.string.split_tunnel_hint_include
+            else R.string.split_tunnel_hint
+        )
     }
 
     private fun loadApps(): List<AppInfo> {
