@@ -72,8 +72,7 @@
             android:minHeight="40dp"
             android:text="@string/import_config"
             android:textSize="13sp"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            app:cornerRadius="20dp" />
+            app:cornerRadius="28dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnScanQr"
@@ -82,8 +81,7 @@
             android:minHeight="40dp"
             android:text="@string/scan_qr"
             android:textSize="13sp"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            app:cornerRadius="20dp"
+            app:cornerRadius="28dp"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
@@ -118,8 +116,7 @@
         android:minHeight="40dp"
         android:text="@string/split_tunnel_btn"
         android:textSize="13sp"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        app:cornerRadius="20dp"
+        app:cornerRadius="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
