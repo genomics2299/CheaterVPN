@@ -117,9 +117,22 @@
         android:text="@string/split_tunnel_btn"
         android:textSize="13sp"
         app:cornerRadius="28dp"
+        app:layout_constraintBottom_toTopOf="@id/btnContact"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnContact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="40dp"
+        android:text="@string/contact_btn"
+        android:textSize="13sp"
+        app:cornerRadius="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="80dp" />
+        android:layout_marginBottom="35dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

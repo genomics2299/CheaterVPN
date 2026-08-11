@@ -186,6 +186,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SplitTunnelActivity::class.java))
         }
 
+        binding.btnContact.setOnClickListener {
+            startActivity(Intent(this, ContactActivity::class.java))
+        }
+
         binding.btnToggle.setOnClickListener {
             if (isConnected) {
                 disconnectVpn()
