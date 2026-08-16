@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.app.PendingIntent
 import android.content.ComponentName
@@ -50,7 +50,7 @@ class VpnTileService : TileService() {
                     openApp(getString(R.string.select_server_first))
                     return@launch
                 }
-                val config = runCatching { awg.parseConfigFile(server.config) }.getOrNull()
+                val config = runCatching { awg.parseConfigFile(awg.buildConfigForServer(server)) }.getOrNull()
                 if (config == null) {
                     openApp(getString(R.string.invalid_config))
                     return@launch

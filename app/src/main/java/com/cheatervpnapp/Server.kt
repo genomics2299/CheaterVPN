@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 data class Server(
     val id: String,

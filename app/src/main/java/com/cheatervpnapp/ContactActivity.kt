@@ -1,11 +1,11 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.vpnapp.databinding.ActivityContactBinding
+import com.cheatervpnapp.databinding.ActivityContactBinding
 
 class ContactActivity : AppCompatActivity() {
 

@@ -1,9 +1,9 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.vpnapp.databinding.ItemServerBinding
+import com.cheatervpnapp.databinding.ItemServerBinding
 
 class ServerAdapter(
     private val onClick: (Server) -> Unit,

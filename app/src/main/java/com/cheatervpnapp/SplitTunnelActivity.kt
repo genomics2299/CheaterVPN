@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.content.pm.PackageManager
 import android.os.Build
@@ -7,7 +7,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.vpnapp.databinding.ActivitySplitTunnelBinding
+import com.cheatervpnapp.databinding.ActivitySplitTunnelBinding
 
 class SplitTunnelActivity : AppCompatActivity() {
 

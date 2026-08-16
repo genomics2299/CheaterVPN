@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.content.Context
 import org.amnezia.awg.backend.Backend
@@ -10,7 +10,8 @@ import java.io.ByteArrayInputStream
 
 class AwgManager(context: Context) {
 
-    private val backend: Backend = GoBackend(context.applicationContext, NoopTunnelActionHandler())
+    private val appContext = context.applicationContext
+    private val backend: Backend = GoBackend(appContext, NoopTunnelActionHandler())
 
     private var currentTunnel: Tunnel? = null
     private var currentConfig: Config? = null
@@ -37,14 +38,43 @@ class AwgManager(context: Context) {
         backend.setState(tunnel, Tunnel.State.UP, config)
         currentTunnel = tunnel
         currentConfig = config
+        val (rx, tx) = readTraffic()
+        SessionTracker.start(ServerStore(appContext).selectedServer(), rx, tx)
     }
 
     fun stopTunnel() {
+        val (rx, tx) = readTraffic()
+        SessionTracker.finish(appContext, rx, tx)
         currentTunnel?.let {
             backend.setState(it, Tunnel.State.DOWN, null)
         }
         currentTunnel = null
         currentConfig = null
+    }
+
+    fun liveStats(): LiveStats? {
+        val t = currentTunnel ?: return null
+        if (!SessionTracker.isActive) return null
+        val (rx, tx) = readTraffic()
+        return SessionTracker.snapshot(rx, tx)
+    }
+
+    fun buildConfigForServer(server: Server): String {
+        val store = SplitTunnelStore(appContext)
+        val apps = store.apps()
+        if (apps.isEmpty()) return server.config
+        return when (store.mode()) {
+            SplitTunnelStore.Mode.EXCLUDE -> applySplitTunnel(server.config, apps, emptySet())
+            SplitTunnelStore.Mode.INCLUDE -> applySplitTunnel(server.config, emptySet(), apps)
+        }
+    }
+
+    private fun readTraffic(): Pair<Long, Long> {
+        val t = currentTunnel ?: return 0L to 0L
+        return runCatching {
+            val s = backend.getStatistics(t)
+            s.totalRx() to s.totalTx()
+        }.getOrDefault(0L to 0L)
     }
 
     fun getVersion(): String = backend.version

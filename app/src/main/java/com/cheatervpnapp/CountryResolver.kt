@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

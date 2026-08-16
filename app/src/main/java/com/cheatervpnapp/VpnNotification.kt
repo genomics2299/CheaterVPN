@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,8 +12,8 @@ object VpnNotification {
 
     const val CHANNEL_ID = "vpn_status"
     const val NOTIFICATION_ID = 1001
-    const val ACTION_DISCONNECT = "com.vpnapp.ACTION_DISCONNECT"
-    const val ACTION_DISCONNECTED = "com.vpnapp.ACTION_DISCONNECTED"
+    const val ACTION_DISCONNECT = "com.cheatervpnapp.ACTION_DISCONNECT"
+    const val ACTION_DISCONNECTED = "com.cheatervpnapp.ACTION_DISCONNECTED"
 
     private fun ensureChannel(context: Context) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -38,7 +38,7 @@ class VpnWidgetProvider : AppWidgetProvider() {
                 openApp(context, context.getString(R.string.select_server_first))
                 return
             }
-            val config = runCatching { awg.parseConfigFile(server.config) }.getOrNull()
+            val config = runCatching { awg.parseConfigFile(awg.buildConfigForServer(server)) }.getOrNull()
             if (config == null) {
                 openApp(context, context.getString(R.string.invalid_config))
                 return
@@ -71,8 +71,8 @@ class VpnWidgetProvider : AppWidgetProvider() {
 
     companion object {
 
-        const val ACTION_TOGGLE = "com.vpnapp.ACTION_WIDGET_TOGGLE"
-        const val EXTRA_WIDGET_MESSAGE = "com.vpnapp.EXTRA_WIDGET_MESSAGE"
+        const val ACTION_TOGGLE = "com.cheatervpnapp.ACTION_WIDGET_TOGGLE"
+        const val EXTRA_WIDGET_MESSAGE = "com.cheatervpnapp.EXTRA_WIDGET_MESSAGE"
 
         fun updateAllWidgets(context: Context) {
             val manager = AppWidgetManager.getInstance(context)

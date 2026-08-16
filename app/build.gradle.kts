@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.vpnapp"
+    namespace = "com.cheatervpnapp"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.vpnapp"
+        applicationId = "com.cheatervpnapp"
         minSdk = 26
         targetSdk = 36
         versionCode = 2
@@ -59,6 +59,12 @@ android {
         viewBinding = true
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -79,4 +85,8 @@ dependencies {
 
     implementation("com.zaneschepke:amneziawg-android:2.3.7")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core:1.6.1")
 }

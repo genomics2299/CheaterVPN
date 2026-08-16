@@ -74,4 +74,28 @@
     <string name="contact_whatsapp">WhatsApp</string>
     <string name="contact_whatsapp_value">+79393373701</string>
     <string name="contact_back">← Back to main</string>
+
+    <string name="stats_btn">Statistics</string>
+    <string name="stats_title">Statistics</string>
+    <string name="stats_session_title">Current session</string>
+    <string name="stats_not_connected">Not connected</string>
+    <string name="stats_connected">Connected: %1$s</string>
+    <string name="stats_unknown_server">unknown server</string>
+    <string name="stats_duration">Duration</string>
+    <string name="stats_downloaded">Downloaded</string>
+    <string name="stats_uploaded">Uploaded</string>
+    <string name="stats_lifetime_title">All time</string>
+    <string name="stats_sessions">Sessions</string>
+    <string name="stats_total_time">Total time</string>
+    <string name="stats_total_downloaded">Total downloaded</string>
+    <string name="stats_total_uploaded">Total uploaded</string>
+    <string name="stats_history_title">History</string>
+    <string name="stats_empty_history">No sessions yet</string>
+    <string name="stats_clear_history">Clear history</string>
+    <string name="stats_clear_confirm">Clear all statistics?</string>
+    <string name="stats_clear_confirm_msg">This will delete all sessions and reset the totals.</string>
+    <string name="stats_clear">Clear</string>
+    <string name="stats_cancel">Cancel</string>
+    <string name="stats_cleared">Statistics cleared</string>
+    <string name="stats_back">← Back to main</string>
 </resources>

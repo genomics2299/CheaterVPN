@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.Manifest
 import android.content.Intent
@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import com.vpnapp.databinding.ActivityMainBinding
+import com.cheatervpnapp.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -188,6 +188,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnContact.setOnClickListener {
             startActivity(Intent(this, ContactActivity::class.java))
+        }
+
+        binding.btnStats.setOnClickListener {
+            startActivity(Intent(this, StatsActivity::class.java))
         }
 
         binding.btnToggle.setOnClickListener {
@@ -522,15 +526,7 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.server_deleted), Toast.LENGTH_SHORT).show()
     }
 
-    private fun splitTunnelConfig(server: Server): String {
-        val store = SplitTunnelStore(this)
-        val apps = store.apps()
-        if (apps.isEmpty()) return server.config
-        return when (store.mode()) {
-            SplitTunnelStore.Mode.EXCLUDE -> AwgManager.applySplitTunnel(server.config, apps, emptySet())
-            SplitTunnelStore.Mode.INCLUDE -> AwgManager.applySplitTunnel(server.config, emptySet(), apps)
-        }
-    }
+    private fun splitTunnelConfig(server: Server): String = awgManager.buildConfigForServer(server)
 
     private fun connectVpn() {
         val server = selectedServer ?: run {

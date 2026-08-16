@@ -1,4 +1,4 @@
-package com.vpnapp
+package com.cheatervpnapp
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers

@@ -74,4 +74,28 @@
     <string name="contact_whatsapp">WhatsApp</string>
     <string name="contact_whatsapp_value">+79393373701</string>
     <string name="contact_back">← На главный экран</string>
+
+    <string name="stats_btn">Статистика</string>
+    <string name="stats_title">Статистика</string>
+    <string name="stats_session_title">Текущая сессия</string>
+    <string name="stats_not_connected">Не подключено</string>
+    <string name="stats_connected">Подключено: %1$s</string>
+    <string name="stats_unknown_server">неизвестный сервер</string>
+    <string name="stats_duration">Длительность</string>
+    <string name="stats_downloaded">Скачано</string>
+    <string name="stats_uploaded">Отправлено</string>
+    <string name="stats_lifetime_title">За всё время</string>
+    <string name="stats_sessions">Сеансы</string>
+    <string name="stats_total_time">Общее время</string>
+    <string name="stats_total_downloaded">Всего скачано</string>
+    <string name="stats_total_uploaded">Всего отправлено</string>
+    <string name="stats_history_title">История</string>
+    <string name="stats_empty_history">Сеансов пока нет</string>
+    <string name="stats_clear_history">Очистить историю</string>
+    <string name="stats_clear_confirm">Очистить всю статистику?</string>
+    <string name="stats_clear_confirm_msg">Это удалит все сеансы и обнулит счётчики.</string>
+    <string name="stats_clear">Очистить</string>
+    <string name="stats_cancel">Отмена</string>
+    <string name="stats_cleared">Статистика очищена</string>
+    <string name="stats_back">← На главный экран</string>
 </resources>

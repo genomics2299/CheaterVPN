@@ -44,6 +44,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".StatsActivity"
+            android:exported="false" />
+
+        <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
             android:exported="false"
