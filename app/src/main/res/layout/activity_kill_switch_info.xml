@@ -6,14 +6,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/back"
-        android:textSize="13sp"
-        style="@style/Widget.MaterialComponents.Button.TextButton" />
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -42,5 +34,36 @@
             android:layout_height="wrap_content"
             android:checked="false" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvKillSwitchStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="6dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/kill_switch_desc_long"
+        android:textSize="15sp"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginTop="20dp" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/back"
+        android:textSize="13sp"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="35dp" />
 
 </LinearLayout>
