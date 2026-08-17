@@ -21,7 +21,8 @@
         android:layout_height="wrap_content"
         android:textSize="13sp"
         android:textColor="@android:color/darker_gray"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center_horizontal" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnToggleKillSwitch"
@@ -30,7 +31,8 @@
         android:minHeight="40dp"
         android:textSize="13sp"
         app:cornerRadius="28dp"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:layout_gravity="center_horizontal" />
 
     <TextView
         android:layout_width="match_parent"
@@ -51,6 +53,7 @@
         android:layout_height="wrap_content"
         android:text="@string/back"
         android:textSize="13sp"
+        app:cornerRadius="28dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="35dp" />
 
