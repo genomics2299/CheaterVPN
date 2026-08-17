@@ -48,6 +48,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".KillSwitchInfoActivity"
+            android:exported="false" />
+
+        <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
             android:exported="false"

@@ -106,4 +106,8 @@
     <string name="kill_switch_title">Kill switch active</string>
     <string name="kill_switch_text">VPN disconnected unexpectedly. Reconnecting…</string>
     <string name="kill_switch_reconnecting">Kill switch: reconnecting…</string>
+    <string name="kill_switch_info">Kill switch info</string>
+    <string name="kill_switch_info_title">What is Kill switch?</string>
+    <string name="kill_switch_info_body">Kill switch is a security feature that protects your data when the VPN connection drops unexpectedly.\n\nWhen enabled, if the VPN tunnel breaks down (for example, due to a network change, server failure, or signal loss), the app will immediately try to reconnect and show a warning notification.\n\nWithout Kill switch, a sudden VPN disconnection may briefly expose your real IP address and unencrypted traffic.\n\nWhen you manually disconnect the VPN, Kill switch disengages and internet access returns to normal.</string>
+    <string name="kill_switch_info_back">← Back to main</string>
 </resources>

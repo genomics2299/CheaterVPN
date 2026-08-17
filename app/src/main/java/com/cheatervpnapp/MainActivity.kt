@@ -196,6 +196,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, StatsActivity::class.java))
         }
 
+        binding.btnKillSwitchInfo.setOnClickListener {
+            startActivity(Intent(this, KillSwitchInfoActivity::class.java))
+        }
+
         binding.swKillSwitch.setOnCheckedChangeListener { _, isChecked ->
             killSwitchStore.setEnabled(isChecked)
         }
