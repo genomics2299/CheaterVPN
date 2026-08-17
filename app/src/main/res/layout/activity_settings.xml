@@ -8,18 +8,20 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/settings_back"
+            android:text="@string/back"
             android:textSize="13sp"
-            style="@style/Widget.MaterialComponents.Button.TextButton" />
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_gravity="start" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/settings_title"
             android:textSize="20sp"
@@ -27,70 +29,47 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="24dp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnKillSwitch"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/kill_switch"
-                android:textSize="15sp" />
-
-            <ImageButton
-                android:id="@+id/btnKillSwitchInfo"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_dialog_info"
-                android:scaleType="centerInside"
-                android:contentDescription="@string/kill_switch_info" />
-
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/swKillSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="false" />
-        </LinearLayout>
+            android:minHeight="40dp"
+            android:text="@string/kill_switch"
+            android:textSize="13sp"
+            app:cornerRadius="28dp"
+            android:layout_marginBottom="8dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSplitTunnel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
+            android:minHeight="40dp"
             android:text="@string/split_tunnel_btn"
-            android:textSize="14sp"
-            app:cornerRadius="12dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textSize="13sp"
+            app:cornerRadius="28dp"
             android:layout_marginBottom="8dp"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStats"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
+            android:minHeight="40dp"
             android:text="@string/stats_btn"
-            android:textSize="14sp"
-            app:cornerRadius="12dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textSize="13sp"
+            app:cornerRadius="28dp"
             android:layout_marginBottom="8dp"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnContact"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
+            android:minHeight="40dp"
             android:text="@string/contact_btn"
-            android:textSize="14sp"
-            app:cornerRadius="12dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textSize="13sp"
+            app:cornerRadius="28dp"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
 
     </LinearLayout>

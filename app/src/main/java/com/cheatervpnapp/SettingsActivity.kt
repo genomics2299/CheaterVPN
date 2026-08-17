@@ -8,23 +8,15 @@ import com.cheatervpnapp.databinding.ActivitySettingsBinding
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
-    private lateinit var killSwitchStore: KillSwitchStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        killSwitchStore = KillSwitchStore(this)
-
         binding.btnBack.setOnClickListener { finish() }
 
-        binding.swKillSwitch.isChecked = killSwitchStore.isEnabled()
-        binding.swKillSwitch.setOnCheckedChangeListener { _, isChecked ->
-            killSwitchStore.setEnabled(isChecked)
-        }
-
-        binding.btnKillSwitchInfo.setOnClickListener {
+        binding.btnKillSwitch.setOnClickListener {
             startActivity(Intent(this, KillSwitchInfoActivity::class.java))
         }
 

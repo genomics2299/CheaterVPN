@@ -60,7 +60,7 @@
     <string name="split_tunnel_include">Только\nвыбранные</string>
     <string name="split_tunnel_btn">Раздельное туннелирование</string>
     <string name="split_tunnel_search">Поиск приложений по названию</string>
-    <string name="split_tunnel_back">← На главный экран</string>
+    <string name="split_tunnel_back">← Назад</string>
 
     <string name="contact_btn">Связаться с разработчиком</string>
     <string name="contact_title">Связаться с разработчиком</string>
@@ -73,7 +73,7 @@
     <string name="contact_vk_value">gen0m1cs</string>
     <string name="contact_whatsapp">WhatsApp</string>
     <string name="contact_whatsapp_value">+79393373701</string>
-    <string name="contact_back">← На главный экран</string>
+    <string name="contact_back">← Назад</string>
 
     <string name="stats_btn">Статистика</string>
     <string name="stats_title">Статистика</string>
@@ -97,7 +97,7 @@
     <string name="stats_clear">Очистить</string>
     <string name="stats_cancel">Отмена</string>
     <string name="stats_cleared">Статистика очищена</string>
-    <string name="stats_back">← На главный экран</string>
+    <string name="stats_back">← Назад</string>
 
     <string name="kill_switch">Kill switch</string>
     <string name="kill_switch_desc">Блокировать интернет при обрыве VPN</string>
@@ -107,11 +107,11 @@
     <string name="kill_switch_text">VPN отключился неожиданно. Переподключение…</string>
     <string name="kill_switch_reconnecting">Kill switch: переподключение…</string>
     <string name="kill_switch_info">О Kill switch</string>
+    <string name="kill_switch_enable">Включить Kill switch</string>
     <string name="kill_switch_info_title">Что такое Kill switch?</string>
     <string name="kill_switch_info_body">Kill switch — это функция безопасности, которая защищает ваши данные при внезапном обрыве VPN-соединения.\n\nЕсли включена и VPN-туннель рушится (например, из-за смены сети, ошибки сервера или потери сигнала), приложение немедленно попытается переподключиться и покажет предупреждающее уведомление.\n\nБез Kill switch внезапное отключение VPN может на мгновение раскрыть ваш реальный IP-адрес и незашифрованный трафик.\n\nПри ручном отключении VPN Kill switch отключается и доступ к интернету восстанавливается в обычном режиме.</string>
-    <string name="kill_switch_info_back">← На главный экран</string>
+    <string name="back">← Назад</string>
 
     <string name="settings_btn">Настройки</string>
     <string name="settings_title">Настройки</string>
-    <string name="settings_back">← Назад</string>
 </resources>

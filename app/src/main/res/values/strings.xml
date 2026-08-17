@@ -60,7 +60,7 @@
     <string name="split_tunnel_include">Only\nselected</string>
     <string name="split_tunnel_btn">Split tunneling</string>
     <string name="split_tunnel_search">Search apps by name</string>
-    <string name="split_tunnel_back">← Back to main</string>
+    <string name="split_tunnel_back">← Back</string>
 
     <string name="contact_btn">Contact the developer</string>
     <string name="contact_title">Contact the developer</string>
@@ -73,7 +73,7 @@
     <string name="contact_vk_value">gen0m1cs</string>
     <string name="contact_whatsapp">WhatsApp</string>
     <string name="contact_whatsapp_value">+79393373701</string>
-    <string name="contact_back">← Back to main</string>
+    <string name="contact_back">← Back</string>
 
     <string name="stats_btn">Statistics</string>
     <string name="stats_title">Statistics</string>
@@ -97,7 +97,7 @@
     <string name="stats_clear">Clear</string>
     <string name="stats_cancel">Cancel</string>
     <string name="stats_cleared">Statistics cleared</string>
-    <string name="stats_back">← Back to main</string>
+    <string name="stats_back">← Back</string>
 
     <string name="kill_switch">Kill switch</string>
     <string name="kill_switch_desc">Block internet when VPN drops</string>
@@ -107,11 +107,11 @@
     <string name="kill_switch_text">VPN disconnected unexpectedly. Reconnecting…</string>
     <string name="kill_switch_reconnecting">Kill switch: reconnecting…</string>
     <string name="kill_switch_info">Kill switch info</string>
+    <string name="kill_switch_enable">Enable Kill switch</string>
     <string name="kill_switch_info_title">What is Kill switch?</string>
     <string name="kill_switch_info_body">Kill switch is a security feature that protects your data when the VPN connection drops unexpectedly.\n\nWhen enabled, if the VPN tunnel breaks down (for example, due to a network change, server failure, or signal loss), the app will immediately try to reconnect and show a warning notification.\n\nWithout Kill switch, a sudden VPN disconnection may briefly expose your real IP address and unencrypted traffic.\n\nWhen you manually disconnect the VPN, Kill switch disengages and internet access returns to normal.</string>
-    <string name="kill_switch_info_back">← Back to main</string>
+    <string name="back">← Back</string>
 
     <string name="settings_btn">Settings</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_back">← Back</string>
 </resources>
