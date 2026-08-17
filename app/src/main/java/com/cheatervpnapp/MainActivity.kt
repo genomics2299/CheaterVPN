@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var awgManager: AwgManager
     private lateinit var serverStore: ServerStore
+    private lateinit var killSwitchStore: KillSwitchStore
     private lateinit var adapter: ServerAdapter
 
     private var servers = emptyList<Server>()
@@ -160,6 +161,7 @@ class MainActivity : AppCompatActivity() {
 
         awgManager = AwgManager.get(this)
         serverStore = ServerStore(this)
+        killSwitchStore = KillSwitchStore(this)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
 
         adapter = ServerAdapter(
@@ -194,6 +196,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, StatsActivity::class.java))
         }
 
+        binding.swKillSwitch.setOnCheckedChangeListener { _, isChecked ->
+            killSwitchStore.setEnabled(isChecked)
+        }
+        binding.swKillSwitch.isChecked = killSwitchStore.isEnabled()
+
         binding.btnToggle.setOnClickListener {
             if (isConnected) {
                 disconnectVpn()
@@ -211,6 +218,15 @@ class MainActivity : AppCompatActivity() {
         loadServers()
         val request = NetworkRequest.Builder().build()
         connectivityManager.registerNetworkCallback(request, connectivityCallback)
+
+        awgManager.setTunnelStateListener {
+            lifecycleScope.launch(Dispatchers.Main) {
+                if (killSwitchStore.isEnabled()) {
+                    VpnNotification.showKillSwitchAlert(this@MainActivity)
+                    Toast.makeText(this@MainActivity, getString(R.string.kill_switch_reconnecting), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
 
         warmUpVpnService()
 
@@ -555,6 +571,10 @@ class MainActivity : AppCompatActivity() {
                 lastRestartAt = SystemClock.elapsedRealtime()
                 withContext(Dispatchers.Main) {
                     isConnected = true
+                    if (killSwitchStore.isEnabled()) {
+                        killSwitchStore.setActive(true)
+                        VpnNotification.cancelKillSwitchAlert(this@MainActivity)
+                    }
                     updateUI()
                     VpnWidgetProvider.updateAllWidgets(this@MainActivity)
                     VpnTileService.requestUpdate(this@MainActivity)
@@ -575,6 +595,8 @@ class MainActivity : AppCompatActivity() {
         restartJob?.cancel()
         lastNetworkKey = null
         lastRestartAt = SystemClock.elapsedRealtime()
+        killSwitchStore.setActive(false)
+        VpnNotification.cancelKillSwitchAlert(this)
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 awgManager.stopTunnel()
@@ -609,6 +631,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         runCatching { connectivityManager.unregisterNetworkCallback(connectivityCallback) }
+        awgManager.setTunnelStateListener(null)
         pingLoop?.cancel()
         restartJob?.cancel()
         pingJobs.values.forEach { it.cancel() }

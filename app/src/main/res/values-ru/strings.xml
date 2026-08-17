@@ -98,4 +98,12 @@
     <string name="stats_cancel">Отмена</string>
     <string name="stats_cleared">Статистика очищена</string>
     <string name="stats_back">← На главный экран</string>
+
+    <string name="kill_switch">Kill switch</string>
+    <string name="kill_switch_desc">Блокировать интернет при обрыве VPN</string>
+    <string name="kill_switch_channel">Оповещения Kill switch</string>
+    <string name="kill_switch_channel_desc">Уведомления при внезапном отключении VPN</string>
+    <string name="kill_switch_title">Kill switch активен</string>
+    <string name="kill_switch_text">VPN отключился неожиданно. Переподключение…</string>
+    <string name="kill_switch_reconnecting">Kill switch: переподключение…</string>
 </resources>

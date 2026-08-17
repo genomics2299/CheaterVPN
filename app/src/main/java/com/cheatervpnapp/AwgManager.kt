@@ -15,8 +15,18 @@ class AwgManager(context: Context) {
 
     private var currentTunnel: Tunnel? = null
     private var currentConfig: Config? = null
+    private var userRequestedStop = false
+    private var tunnelStateListener: TunnelStateListener? = null
 
     private val tunnelName = "vpnapp-tun"
+
+    fun interface TunnelStateListener {
+        fun onUnexpectedDisconnect()
+    }
+
+    fun setTunnelStateListener(listener: TunnelStateListener?) {
+        tunnelStateListener = listener
+    }
 
     fun parseConfigFile(content: String): Config {
         val cleaned = content.lines()
@@ -29,9 +39,14 @@ class AwgManager(context: Context) {
 
     fun startTunnel(config: Config) {
         if (isRunning) stopTunnel()
+        userRequestedStop = false
         val tunnel = object : Tunnel {
             override fun getName(): String = tunnelName
-            override fun onStateChange(newState: Tunnel.State) {}
+            override fun onStateChange(newState: Tunnel.State) {
+                if (newState == Tunnel.State.DOWN && !userRequestedStop) {
+                    tunnelStateListener?.onUnexpectedDisconnect()
+                }
+            }
             override fun isIpv4ResolutionPreferred(): Boolean = false
             override fun isMetered(): Boolean = false
         }
@@ -43,6 +58,7 @@ class AwgManager(context: Context) {
     }
 
     fun stopTunnel() {
+        userRequestedStop = true
         val (rx, tx) = readTraffic()
         SessionTracker.finish(appContext, rx, tx)
         currentTunnel?.let {

@@ -11,7 +11,9 @@ import androidx.core.app.NotificationManagerCompat
 object VpnNotification {
 
     const val CHANNEL_ID = "vpn_status"
+    const val KILL_SWITCH_CHANNEL_ID = "kill_switch_alert"
     const val NOTIFICATION_ID = 1001
+    const val KILL_SWITCH_NOTIFICATION_ID = 1002
     const val ACTION_DISCONNECT = "com.cheatervpnapp.ACTION_DISCONNECT"
     const val ACTION_DISCONNECTED = "com.cheatervpnapp.ACTION_DISCONNECTED"
 
@@ -24,6 +26,17 @@ object VpnNotification {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = context.getString(R.string.notif_channel_desc)
+                setShowBadge(false)
+            }
+            manager.createNotificationChannel(channel)
+        }
+        if (manager.getNotificationChannel(KILL_SWITCH_CHANNEL_ID) == null) {
+            val channel = NotificationChannel(
+                KILL_SWITCH_CHANNEL_ID,
+                context.getString(R.string.kill_switch_channel),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = context.getString(R.string.kill_switch_channel_desc)
                 setShowBadge(false)
             }
             manager.createNotificationChannel(channel)
@@ -60,5 +73,27 @@ object VpnNotification {
 
     fun cancel(context: Context) {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+    }
+
+    fun showKillSwitchAlert(context: Context) {
+        ensureChannel(context)
+        val nm = NotificationManagerCompat.from(context)
+        if (!nm.areNotificationsEnabled()) return
+
+        val notification = NotificationCompat.Builder(context, KILL_SWITCH_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.kill_switch_title))
+            .setContentText(context.getString(R.string.kill_switch_text))
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        nm.notify(KILL_SWITCH_NOTIFICATION_ID, notification)
+    }
+
+    fun cancelKillSwitchAlert(context: Context) {
+        NotificationManagerCompat.from(context).cancel(KILL_SWITCH_NOTIFICATION_ID)
     }
 }

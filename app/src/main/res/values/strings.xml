@@ -98,4 +98,12 @@
     <string name="stats_cancel">Cancel</string>
     <string name="stats_cleared">Statistics cleared</string>
     <string name="stats_back">← Back to main</string>
+
+    <string name="kill_switch">Kill switch</string>
+    <string name="kill_switch_desc">Block internet when VPN drops</string>
+    <string name="kill_switch_channel">Kill switch alerts</string>
+    <string name="kill_switch_channel_desc">Notifications when VPN unexpectedly disconnects</string>
+    <string name="kill_switch_title">Kill switch active</string>
+    <string name="kill_switch_text">VPN disconnected unexpectedly. Reconnecting…</string>
+    <string name="kill_switch_reconnecting">Kill switch: reconnecting…</string>
 </resources>
