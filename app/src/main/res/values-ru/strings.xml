@@ -110,4 +110,8 @@
     <string name="kill_switch_info_title">Что такое Kill switch?</string>
     <string name="kill_switch_info_body">Kill switch — это функция безопасности, которая защищает ваши данные при внезапном обрыве VPN-соединения.\n\nЕсли включена и VPN-туннель рушится (например, из-за смены сети, ошибки сервера или потери сигнала), приложение немедленно попытается переподключиться и покажет предупреждающее уведомление.\n\nБез Kill switch внезапное отключение VPN может на мгновение раскрыть ваш реальный IP-адрес и незашифрованный трафик.\n\nПри ручном отключении VPN Kill switch отключается и доступ к интернету восстанавливается в обычном режиме.</string>
     <string name="kill_switch_info_back">← На главный экран</string>
+
+    <string name="settings_btn">Настройки</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_back">← Назад</string>
 </resources>

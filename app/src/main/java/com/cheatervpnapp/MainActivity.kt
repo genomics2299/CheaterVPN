@@ -184,26 +184,9 @@ class MainActivity : AppCompatActivity() {
             scanLauncher.launch(options)
         }
 
-        binding.btnSplitTunnel.setOnClickListener {
-            startActivity(Intent(this, SplitTunnelActivity::class.java))
+        binding.btnSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
-
-        binding.btnContact.setOnClickListener {
-            startActivity(Intent(this, ContactActivity::class.java))
-        }
-
-        binding.btnStats.setOnClickListener {
-            startActivity(Intent(this, StatsActivity::class.java))
-        }
-
-        binding.btnKillSwitchInfo.setOnClickListener {
-            startActivity(Intent(this, KillSwitchInfoActivity::class.java))
-        }
-
-        binding.swKillSwitch.setOnCheckedChangeListener { _, isChecked ->
-            killSwitchStore.setEnabled(isChecked)
-        }
-        binding.swKillSwitch.isChecked = killSwitchStore.isEnabled()
 
         binding.btnToggle.setOnClickListener {
             if (isConnected) {
