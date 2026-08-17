@@ -51,7 +51,6 @@
         android:layout_height="wrap_content"
         android:text="@string/back"
         android:textSize="13sp"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="35dp" />
 
