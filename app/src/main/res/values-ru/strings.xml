@@ -110,6 +110,8 @@
     <string name="kill_switch_enable">Включить Kill switch</string>
     <string name="kill_switch_status_on">Включено</string>
     <string name="kill_switch_status_off">Выключено</string>
+    <string name="kill_switch_connect">Подключить</string>
+    <string name="kill_switch_disconnect">Отключить</string>
     <string name="kill_switch_desc_long">Kill switch блокирует доступ в интернет, если VPN-соединение разорвалось неожиданно.\n\nЕсли включён и VPN-туннель рушится (смена сети, ошибка сервера, потеря сигнала), приложение немедленно пытается переподключиться и показывает уведомление.\n\nБез Kill switch внезапное отключение может на мгновение раскрыть ваш реальный IP-адрес и незашифрованный трафик.\n\nПри ручном отключении VPN Kill switch отключается автоматически.</string>
     <string name="kill_switch_info_title">Что такое Kill switch?</string>
     <string name="kill_switch_info_body">Kill switch — это функция безопасности, которая защищает ваши данные при внезапном обрыве VPN-соединения.\n\nЕсли включена и VPN-туннель рушится (например, из-за смены сети, ошибки сервера или потери сигнала), приложение немедленно попытается переподключиться и покажет предупреждающее уведомление.\n\nБез Kill switch внезапное отключение VPN может на мгновение раскрыть ваш реальный IP-адрес и незашифрованный трафик.\n\nПри ручном отключении VPN Kill switch отключается и доступ к интернету восстанавливается в обычном режиме.</string>

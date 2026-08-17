@@ -18,15 +18,14 @@ class KillSwitchInfoActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
 
-        updateStatus()
-        binding.swKillSwitch.isChecked = killSwitchStore.isEnabled()
-        binding.swKillSwitch.setOnCheckedChangeListener { _, isChecked ->
-            killSwitchStore.setEnabled(isChecked)
-            updateStatus()
+        updateUI()
+        binding.btnToggleKillSwitch.setOnClickListener {
+            killSwitchStore.setEnabled(!killSwitchStore.isEnabled())
+            updateUI()
         }
     }
 
-    private fun updateStatus() {
+    private fun updateUI() {
         val enabled = killSwitchStore.isEnabled()
         binding.tvKillSwitchStatus.text = if (enabled) {
             getString(R.string.kill_switch_status_on)
@@ -37,5 +36,10 @@ class KillSwitchInfoActivity : AppCompatActivity() {
             if (enabled) getColor(android.R.color.holo_green_dark)
             else getColor(android.R.color.darker_gray)
         )
+        binding.btnToggleKillSwitch.text = if (enabled) {
+            getString(R.string.kill_switch_disconnect)
+        } else {
+            getString(R.string.kill_switch_connect)
+        }
     }
 }
