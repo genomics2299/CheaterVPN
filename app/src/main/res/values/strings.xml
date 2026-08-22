@@ -11,6 +11,10 @@
 
     <string name="servers_title">Servers</string>
     <string name="import_config">Import config</string>
+    <string name="paste_link">Paste link</string>
+    <string name="paste_link_title">Server link</string>
+    <string name="paste_link_hint">vless:// … vmess:// … trojan:// … ss://</string>
+    <string name="paste_link_empty">Enter a link</string>
     <string name="scan_qr">QR scan</string>
     <string name="scan_qr_prompt">Point the camera at an AmneziaWG/WireGuard QR code</string>
     <string name="invalid_qr_config">Invalid config in QR code</string>

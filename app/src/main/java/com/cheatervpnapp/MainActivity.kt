@@ -1,6 +1,7 @@
 package com.cheatervpnapp
 
 import android.Manifest
+import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
@@ -12,8 +13,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -175,6 +180,8 @@ class MainActivity : AppCompatActivity() {
         binding.btnImportConfig.setOnClickListener {
             configPickerLauncher.launch(arrayOf("*/*"))
         }
+
+        binding.btnPasteLink.setOnClickListener { showPasteLinkDialog() }
 
         binding.btnScanQr.setOnClickListener {
             val options = ScanOptions()
@@ -404,8 +411,43 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
     }
 
-    private suspend fun importXrayLink(link: String, displayName: String?) {
-        val parsed = XrayConfig.parse(link)
+    private fun showPasteLinkDialog() {
+        val input = EditText(this).apply {
+            hint = getString(R.string.paste_link_hint)
+            setText(clipboardLink())
+        }
+        val container = FrameLayout(this).apply {
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad / 2, pad, 0)
+            addView(
+                input,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.paste_link_title)
+            .setView(container)
+            .setPositiveButton(R.string.import_config) { _, _ ->
+                val link = input.text.toString().trim()
+                if (link.isEmpty()) {
+                    Toast.makeText(this, getString(R.string.paste_link_empty), Toast.LENGTH_SHORT).show()
+                } else {
+                    lifecycleScope.launch { importConfigText(link, null) }
+                }
+            }
+            .setNegativeButton(R.string.stats_cancel, null)
+            .show()
+    }
+
+    private fun clipboardLink(): String = runCatching {
+        getSystemService(ClipboardManager::class.java)
+            ?.primaryClip?.getItemAt(0)?.text?.toString()?.trim().orEmpty()
+    }.getOrNull()?.takeIf { XrayConfig.isXrayLink(it) } ?: ""
+
+    private suspend fun importXrayLink(link: String, displayName: String?) {        val parsed = XrayConfig.parse(link)
         if (parsed == null) {
             Toast.makeText(this, getString(R.string.invalid_config_detail, link.take(24)), Toast.LENGTH_LONG).show()
             return
@@ -694,6 +736,7 @@ class MainActivity : AppCompatActivity() {
         )
         binding.btnImportConfig.isEnabled = !isConnected
         binding.btnScanQr.isEnabled = !isConnected
+        binding.btnPasteLink.isEnabled = !isConnected
     }
 
     override fun onDestroy() {
