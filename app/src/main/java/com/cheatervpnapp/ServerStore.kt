@@ -21,9 +21,10 @@ class ServerStore(context: Context) {
                             name = o.getString("name"),
                             country = o.getString("country"),
                             countryCode = o.getString("countryCode"),
-                            host = o.getString("host"),
-                            port = o.getInt("port"),
-                            config = o.getString("config"),
+                            host = o.optString("host"),
+                            port = o.optInt("port"),
+                            config = o.optString("config"),
+                            type = o.optString("type", Server.TYPE_AWG),
                         )
                     )
                 }
@@ -43,6 +44,7 @@ class ServerStore(context: Context) {
                     put("host", s.host)
                     put("port", s.port)
                     put("config", s.config)
+                    put("type", s.type)
                 }
             )
         }

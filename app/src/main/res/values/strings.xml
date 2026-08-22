@@ -21,6 +21,7 @@
     <string name="empty_config">Empty config file</string>
     <string name="invalid_config">Invalid config</string>
     <string name="invalid_config_detail">Invalid config: %1$s</string>
+    <string name="xray_start_failed">Failed to start Xray connection</string>
     <string name="config_imported">Config already imported</string>
     <string name="server_added">Server added</string>
     <string name="select_server_first">Select a server first</string>

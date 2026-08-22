@@ -43,11 +43,8 @@ object VpnNotification {
         }
     }
 
-    fun showConnected(context: Context, server: Server) {
+    fun buildForeground(context: Context, server: Server?): android.app.Notification {
         ensureChannel(context)
-        val nm = NotificationManagerCompat.from(context)
-        if (!nm.areNotificationsEnabled()) return
-
         val disconnectIntent = Intent(context, DisconnectReceiver::class.java)
             .setAction(ACTION_DISCONNECT)
         val disconnectPending = PendingIntent.getBroadcast(
@@ -56,19 +53,23 @@ object VpnNotification {
             disconnectIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notif_title))
-            .setContentText("${server.country.ifEmpty { server.name }} — ${server.host}")
+            .setContentText(server?.let { "${it.country.ifEmpty { it.name }} — ${it.host}" } ?: "")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .addAction(0, context.getString(R.string.notif_disconnect_action), disconnectPending)
             .build()
+    }
 
-        nm.notify(NOTIFICATION_ID, notification)
+    fun showConnected(context: Context, server: Server) {
+        ensureChannel(context)
+        val nm = NotificationManagerCompat.from(context)
+        if (!nm.areNotificationsEnabled()) return
+        nm.notify(NOTIFICATION_ID, buildForeground(context, server))
     }
 
     fun cancel(context: Context) {

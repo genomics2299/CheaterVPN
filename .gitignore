@@ -13,3 +13,6 @@ captures/
 *.keystore
 keystore.properties
 .keystore_pw.txt
+
+hev-tunnel/obj-out/
+hev-tunnel/obj-out64/

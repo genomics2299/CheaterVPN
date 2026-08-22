@@ -21,6 +21,7 @@
     <string name="empty_config">Пустой файл конфига</string>
     <string name="invalid_config">Неверный конфиг</string>
     <string name="invalid_config_detail">Неверный конфиг: %1$s</string>
+    <string name="xray_start_failed">Не удалось запустить Xray-соединение</string>
     <string name="config_imported">Конфиг уже импортирован</string>
     <string name="server_added">Сервер добавлен</string>
     <string name="select_server_first">Сначала выберите сервер</string>

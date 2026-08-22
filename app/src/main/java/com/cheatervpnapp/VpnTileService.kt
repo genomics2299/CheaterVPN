@@ -44,10 +44,23 @@ class VpnTileService : TileService() {
             if (awg.isRunning) {
                 awg.stopTunnel()
                 VpnNotification.cancel(this@VpnTileService)
+            } else if (XrayVpnService.isActive()) {
+                XrayVpnService.requestStop(this@VpnTileService)
+                VpnNotification.cancel(this@VpnTileService)
             } else {
                 val server = ServerStore(this@VpnTileService).selectedServer()
                 if (server == null) {
                     openApp(getString(R.string.select_server_first))
+                    return@launch
+                }
+                if (server.isXray) {
+                    if (VpnService.prepare(this@VpnTileService) != null) {
+                        openApp(getString(R.string.vpn_permission_required))
+                        return@launch
+                    }
+                    XrayVpnService.requestStart(this@VpnTileService)
+                    updateTile()
+                    VpnWidgetProvider.updateAllWidgets(this@VpnTileService)
                     return@launch
                 }
                 val config = runCatching { awg.parseConfigFile(awg.buildConfigForServer(server)) }.getOrNull()
@@ -75,7 +88,7 @@ class VpnTileService : TileService() {
 
     private fun updateTile() {
         val tile = qsTile ?: return
-        val running = AwgManager.get(this).isRunning
+        val running = AwgManager.get(this).isRunning || XrayVpnService.isActive()
         tile.label = getString(R.string.tile_label)
         tile.icon = Icon.createWithResource(this, R.drawable.ic_notification)
         tile.state = if (running) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE

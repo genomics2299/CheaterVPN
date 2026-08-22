@@ -8,12 +8,18 @@ data class Server(
     val host: String,
     val port: Int,
     val config: String,
+    val type: String = TYPE_AWG,
 ) {
     fun flag(): String = flagEmoji(countryCode)
 
     fun endpointLabel(): String = if (host.isEmpty()) "—" else "$host:$port"
 
+    val isXray: Boolean get() = type == TYPE_XRAY
+
     companion object {
+        const val TYPE_AWG = "awg"
+        const val TYPE_XRAY = "xray"
+
         fun parseEndpoint(configText: String): Pair<String, Int>? {
             val match = Regex("""(?im)^\s*Endpoint\s*=\s*(.+)$""").find(configText) ?: return null
             val ep = match.groupValues[1].trim()
