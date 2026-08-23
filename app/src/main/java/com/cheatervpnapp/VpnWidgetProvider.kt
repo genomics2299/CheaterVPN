@@ -32,22 +32,10 @@ class VpnWidgetProvider : AppWidgetProvider() {
         if (awg.isRunning) {
             awg.stopTunnel()
             VpnNotification.cancel(context)
-        } else if (XrayVpnService.isActive()) {
-            XrayVpnService.requestStop(context)
-            VpnNotification.cancel(context)
         } else {
             val server = ServerStore(context).selectedServer()
             if (server == null) {
                 openApp(context, context.getString(R.string.select_server_first))
-                return
-            }
-            if (server.isXray) {
-                if (VpnService.prepare(context) != null) {
-                    openApp(context, context.getString(R.string.vpn_permission_required))
-                    return
-                }
-                XrayVpnService.requestStart(context)
-                updateAllWidgets(context)
                 return
             }
             val config = runCatching { awg.parseConfigFile(awg.buildConfigForServer(server)) }.getOrNull()
@@ -99,7 +87,7 @@ class VpnWidgetProvider : AppWidgetProvider() {
             manager: AppWidgetManager,
             appWidgetId: Int,
         ) {
-            val running = AwgManager.get(context).isRunning || XrayVpnService.isActive()
+            val running = AwgManager.get(context).isRunning
             val views = RemoteViews(context.packageName, R.layout.widget_vpn)
             views.setTextViewText(
                 R.id.widget_status,

@@ -9,9 +9,6 @@ class DisconnectReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != VpnNotification.ACTION_DISCONNECT) return
 
-        if (XrayVpnService.isActive()) {
-            XrayVpnService.requestStop(context)
-        }
         AwgManager.get(context).stopTunnel()
         VpnNotification.cancel(context)
 

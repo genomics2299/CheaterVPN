@@ -55,7 +55,7 @@ class StatsActivity : AppCompatActivity() {
         reload()
         lifecycleScope.launch {
             while (isActive) {
-                val live = awgManager.liveStats() ?: XrayVpnService.liveStats()
+                val live = awgManager.liveStats()
                 val connected = live != null
                 if (connected != lastConnected) {
                     lastConnected = connected

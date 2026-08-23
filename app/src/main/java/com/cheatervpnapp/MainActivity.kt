@@ -1,7 +1,6 @@
 package com.cheatervpnapp
 
 import android.Manifest
-import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
@@ -13,12 +12,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.Toast
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -181,8 +176,6 @@ class MainActivity : AppCompatActivity() {
             configPickerLauncher.launch(arrayOf("*/*"))
         }
 
-        binding.btnPasteLink.setOnClickListener { showPasteLinkDialog() }
-
         binding.btnScanQr.setOnClickListener {
             val options = ScanOptions()
                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
@@ -239,7 +232,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        isConnected = awgManager.isRunning || XrayVpnService.isActive()
+        isConnected = awgManager.isRunning
         updateUI()
     }
 
@@ -366,11 +359,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (XrayConfig.isXrayLink(text)) {
-            importXrayLink(text.trim(), displayName)
-            return
-        }
-
         val parseResult = runCatching { awgManager.parseConfigFile(text) }
         if (parseResult.isFailure) {
             Toast.makeText(this, getString(R.string.invalid_config_detail, exceptionDetail(parseResult.exceptionOrNull())), Toast.LENGTH_LONG).show()
@@ -400,82 +388,6 @@ class MainActivity : AppCompatActivity() {
         )
 
         if (servers.any { it.config == text }) {
-            Toast.makeText(this, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        servers = servers + server
-        serverStore.save(servers)
-        adapter.submitList(servers)
-        startPing(server)
-        Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
-    }
-
-    private fun showPasteLinkDialog() {
-        val input = EditText(this).apply {
-            hint = getString(R.string.paste_link_hint)
-            setText(clipboardLink())
-        }
-        val container = FrameLayout(this).apply {
-            val pad = (16 * resources.displayMetrics.density).toInt()
-            setPadding(pad, pad / 2, pad, 0)
-            addView(
-                input,
-                FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                ),
-            )
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.paste_link_title)
-            .setView(container)
-            .setPositiveButton(R.string.import_config) { _, _ ->
-                val link = input.text.toString().trim()
-                if (link.isEmpty()) {
-                    Toast.makeText(this, getString(R.string.paste_link_empty), Toast.LENGTH_SHORT).show()
-                } else {
-                    lifecycleScope.launch { importConfigText(link, null) }
-                }
-            }
-            .setNegativeButton(R.string.stats_cancel, null)
-            .show()
-    }
-
-    private fun clipboardLink(): String = runCatching {
-        getSystemService(ClipboardManager::class.java)
-            ?.primaryClip?.getItemAt(0)?.text?.toString()?.trim().orEmpty()
-    }.getOrNull()?.takeIf { XrayConfig.isXrayLink(it) } ?: ""
-
-    private suspend fun importXrayLink(link: String, displayName: String?) {        val parsed = XrayConfig.parse(link)
-        if (parsed == null) {
-            Toast.makeText(this, getString(R.string.invalid_config_detail, link.take(24)), Toast.LENGTH_LONG).show()
-            return
-        }
-
-        var name = parsed.name.ifBlank {
-            displayName?.substringBeforeLast('.')?.ifEmpty { null } ?: parsed.protocol
-        }
-        var country = ""
-        var countryCode = ""
-        CountryResolver.resolveCountry(parsed.host)?.let { (c, code) ->
-            country = c
-            countryCode = code
-            name = c
-        }
-
-        val server = Server(
-            id = System.currentTimeMillis().toString(),
-            name = name,
-            country = country,
-            countryCode = countryCode,
-            host = parsed.host,
-            port = parsed.port,
-            config = link.trim(),
-            type = Server.TYPE_XRAY,
-        )
-
-        if (servers.any { it.config == server.config && it.type == server.type }) {
             Toast.makeText(this, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
             return
         }
@@ -625,16 +537,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (server.isXray) {
-            val intent = VpnService.prepare(this)
-            if (intent != null) {
-                vpnPermissionLauncher.launch(intent)
-            } else {
-                startXrayVpn(server)
-            }
-            return
-        }
-
         val config = runCatching { awgManager.parseConfigFile(splitTunnelConfig(server)) }.getOrElse {
             Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
             return
@@ -645,22 +547,6 @@ class MainActivity : AppCompatActivity() {
             vpnPermissionLauncher.launch(intent)
         } else {
             startTunnel(config)
-        }
-    }
-
-    private fun startXrayVpn(server: Server) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            if (awgManager.isRunning) {
-                runCatching { awgManager.stopTunnel() }
-                withContext(Dispatchers.Main) {
-                    VpnNotification.cancel(this@MainActivity)
-                }
-            }
-            withContext(Dispatchers.Main) {
-                XrayVpnService.requestStart(this@MainActivity)
-                isConnected = true
-                updateUI()
-            }
         }
     }
 
@@ -698,14 +584,6 @@ class MainActivity : AppCompatActivity() {
         lastRestartAt = SystemClock.elapsedRealtime()
         killSwitchStore.setActive(false)
         VpnNotification.cancelKillSwitchAlert(this)
-        if (XrayVpnService.isActive()) {
-            XrayVpnService.requestStop(this)
-            isConnected = false
-            VpnNotification.cancel(this)
-            updateUI()
-            Toast.makeText(this, getString(R.string.vpn_disconnected), Toast.LENGTH_SHORT).show()
-            return
-        }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 awgManager.stopTunnel()
@@ -736,7 +614,6 @@ class MainActivity : AppCompatActivity() {
         )
         binding.btnImportConfig.isEnabled = !isConnected
         binding.btnScanQr.isEnabled = !isConnected
-        binding.btnPasteLink.isEnabled = !isConnected
     }
 
     override fun onDestroy() {

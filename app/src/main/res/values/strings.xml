@@ -11,10 +11,6 @@
 
     <string name="servers_title">Servers</string>
     <string name="import_config">Import config</string>
-    <string name="paste_link">Paste link</string>
-    <string name="paste_link_title">Server link</string>
-    <string name="paste_link_hint">vless:// … vmess:// … trojan:// … ss://</string>
-    <string name="paste_link_empty">Enter a link</string>
     <string name="scan_qr">QR scan</string>
     <string name="scan_qr_prompt">Point the camera at an AmneziaWG/WireGuard QR code</string>
     <string name="invalid_qr_config">Invalid config in QR code</string>
@@ -25,7 +21,6 @@
     <string name="empty_config">Empty config file</string>
     <string name="invalid_config">Invalid config</string>
     <string name="invalid_config_detail">Invalid config: %1$s</string>
-    <string name="xray_start_failed">Failed to start Xray connection</string>
     <string name="config_imported">Config already imported</string>
     <string name="server_added">Server added</string>
     <string name="select_server_first">Select a server first</string>
