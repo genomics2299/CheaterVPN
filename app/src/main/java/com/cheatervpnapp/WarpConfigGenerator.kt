@@ -1,5 +1,9 @@
 package com.cheatervpnapp
 
+import android.content.ContentUris
+import android.content.Context
+import android.provider.MediaStore
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.amnezia.awg.crypto.Key
@@ -9,14 +13,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.SecureRandom
 import java.time.Instant
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
 
 object WarpConfigGenerator {
 
+    private const val TAG = "WarpConfig"
     private const val API_URL = "https://api.cloudflareclient.com/v0a1922/reg"
     private const val USER_AGENT = "okhttp/3.12.1"
     private const val CLIENT_VERSION = "a-6.3-1922"
+    private const val FALLBACK_FILENAME = "warp.conf"
 
     class WarpResult(
         val config: String,
@@ -24,17 +28,22 @@ object WarpConfigGenerator {
         val port: Int,
     )
 
-    suspend fun generate(): Result<WarpResult> = withContext(Dispatchers.IO) {
+    suspend fun generate(context: Context? = null): Result<WarpResult> = withContext(Dispatchers.IO) {
         runCatching {
             val keyPair = generateKeyPair()
+            Log.d(TAG, "Key generated: pub=${keyPair.publicKey.toBase64().take(8)}...")
             val body = register(keyPair.publicKey.toBase64())
-            val config = body.optJSONObject("result")?.getJSONObject("config")
-                ?: body.getJSONObject("config")
+            Log.d(TAG, "API success, parsing config")
+            val config = body.optJSONObject("result")?.optJSONObject("config")
+                ?: body.optJSONObject("config")
+                ?: throw RuntimeException("No config in response")
             val peer = config.getJSONArray("peers").getJSONObject(0)
             val peerPub = peer.getString("public_key")
             val endpoint = peer.getJSONObject("endpoint")
-            val epRaw = endpoint.optString("v4").ifEmpty { endpoint.optString("v6") }
-            val (host, port) = splitEndpoint(epRaw)
+            val hostPort = endpoint.optString("host").ifEmpty {
+                endpoint.optString("v4")
+            }
+            val (host, port) = splitEndpoint(hostPort)
             val addresses = config.getJSONObject("interface").getJSONObject("addresses")
             val v4 = addresses.optString("v4")
             val v6 = addresses.optString("v6")
@@ -47,7 +56,98 @@ object WarpConfigGenerator {
                 port = port,
             )
             WarpResult(text, host, port)
+        }.onFailure { Log.e(TAG, "API generate failed, trying fallback", it) }
+            .recoverCatching {
+                Log.d(TAG, "Attempting fallback read...")
+                readFallbackFile(context!!)
+            }.onFailure { Log.e(TAG, "Fallback also failed", it) }
+    }
+
+    private fun readFallbackFile(context: Context): WarpResult {
+        val text = readExternalFilesDir(context)
+            ?: queryMediaStoreFile(context)
+            ?: readDirectFile()
+                ?: throw RuntimeException("API unavailable and no $FALLBACK_FILENAME found")
+        Log.d(TAG, "Read fallback config")
+        val host = parseEndpoint(text)
+        val port = parsePort(text)
+        return WarpResult(text, host, port)
+    }
+
+    private fun readExternalFilesDir(context: Context): String? {
+        return try {
+            val dir = context.getExternalFilesDir(null) ?: return null
+            val file = java.io.File(dir, FALLBACK_FILENAME)
+            if (file.exists()) {
+                Log.d(TAG, "Read from externalFilesDir: ${file.absolutePath}")
+                file.readText()
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "externalFilesDir read failed", e)
+            null
         }
+    }
+
+    private fun readDirectFile(): String? {
+        val paths = listOf(
+            "/sdcard/Download/warp.conf",
+            "/storage/emulated/0/Download/warp.conf",
+        )
+        for (p in paths) {
+            try {
+                val f = java.io.File(p)
+                if (f.exists() && f.canRead()) {
+                    Log.d(TAG, "Read direct file: $p")
+                    return f.readText()
+                }
+            } catch (_: Exception) {}
+        }
+        return null
+    }
+
+    private fun queryMediaStoreFile(context: Context): String? {
+        val projection = arrayOf(
+            MediaStore.Downloads._ID,
+            MediaStore.Downloads.DISPLAY_NAME,
+        )
+        val selection = "${MediaStore.Downloads.DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(FALLBACK_FILENAME)
+        val sortOrder = "${MediaStore.Downloads.DATE_ADDED} DESC"
+
+        context.contentResolver.query(
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+            projection, selection, selectionArgs, sortOrder
+        )?.use { cursor ->
+            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID)
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(idCol)
+                val uri = ContentUris.withAppendedId(MediaStore.Downloads.EXTERNAL_CONTENT_URI, id)
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    return stream.bufferedReader().readText()
+                }
+            }
+        }
+        return null
+    }
+
+    private fun parseEndpoint(config: String): String {
+        for (line in config.lines()) {
+            if (line.trimStart().startsWith("Endpoint")) {
+                val value = line.substringAfter("=", "").trim()
+                return value.substringBeforeLast(":")
+            }
+        }
+        return ""
+    }
+
+    private fun parsePort(config: String): Int {
+        for (line in config.lines()) {
+            if (line.trimStart().startsWith("Endpoint")) {
+                val value = line.substringAfter("=", "").trim()
+                return value.substringAfterLast(":").toIntOrNull() ?: 2408
+            }
+        }
+        return 2408
     }
 
     private fun generateKeyPair(): KeyPair {
@@ -71,21 +171,16 @@ object WarpConfigGenerator {
             .put("tos", Instant.now().toString())
             .put("type", "Android")
 
-        val sslContext = SSLContext.getInstance("TLSv1.2").apply {
-            init(null, null, SecureRandom())
-        }
-
         val conn = URL(API_URL).openConnection() as HttpURLConnection
         try {
             conn.requestMethod = "POST"
             conn.doOutput = true
-            conn.connectTimeout = 10000
-            conn.readTimeout = 15000
+            conn.connectTimeout = 5000
+            conn.readTimeout = 5000
             conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             conn.setRequestProperty("Accept", "application/json")
             conn.setRequestProperty("User-Agent", USER_AGENT)
             conn.setRequestProperty("CF-Client-Version", CLIENT_VERSION)
-            (conn as? HttpsURLConnection)?.sslSocketFactory = sslContext.socketFactory
             conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
 
             val code = conn.responseCode
@@ -132,6 +227,10 @@ object WarpConfigGenerator {
         sb.append("Jc = 4\n")
         sb.append("Jmin = 40\n")
         sb.append("Jmax = 70\n")
+        sb.append("S1 = 0\n")
+        sb.append("S2 = 0\n")
+        sb.append("S3 = 0\n")
+        sb.append("S4 = 0\n")
         sb.append('\n')
         sb.append("[Peer]\n")
         sb.append("PublicKey = ").append(peerPublicKey).append('\n')

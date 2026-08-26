@@ -66,7 +66,6 @@ class MainActivity : AppCompatActivity() {
                 BackendException.Reason.TUN_CREATION_ERROR -> R.string.err_tun_creation
                 BackendException.Reason.GO_ACTIVATION_ERROR_CODE -> R.string.err_go_activation
                 BackendException.Reason.DNS_RESOLUTION_FAILURE -> R.string.err_dns_resolution
-                BackendException.Reason.SERVICE_NOT_RUNNING -> R.string.err_service_not_running
                 else -> R.string.err_generic
             }
             val text = getString(base)
@@ -404,7 +403,7 @@ class MainActivity : AppCompatActivity() {
     private fun generateWarpConfig() {
         binding.btnWarp.isEnabled = false
         lifecycleScope.launch {
-            val result = WarpConfigGenerator.generate()
+            val result = WarpConfigGenerator.generate(this@MainActivity)
             result.onSuccess { warpResult ->
                 val server = Server(
                     id = System.currentTimeMillis().toString(),
@@ -602,6 +601,9 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, getString(R.string.vpn_connected), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
+                if (e is BackendException) {
+                    Log.e("MainActivity", "BackendException reason=${e.reason} format=${e.format?.contentToString()} cause=${e.cause}", e)
+                }
                 logError("MainActivity", "Connect failed", e)
                 val msg = exceptionMessage(e)
                 withContext(Dispatchers.Main) {

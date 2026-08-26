@@ -1,9 +1,9 @@
 package com.cheatervpnapp
 
 import android.content.Context
+import android.util.Log
 import org.amnezia.awg.backend.Backend
 import org.amnezia.awg.backend.GoBackend
-import org.amnezia.awg.backend.NoopTunnelActionHandler
 import org.amnezia.awg.backend.Tunnel
 import org.amnezia.awg.config.Config
 import java.io.ByteArrayInputStream
@@ -11,7 +11,7 @@ import java.io.ByteArrayInputStream
 class AwgManager(context: Context) {
 
     private val appContext = context.applicationContext
-    private val backend: Backend = GoBackend(appContext, NoopTunnelActionHandler())
+    private val backend: Backend = GoBackend(appContext)
 
     private var currentTunnel: Tunnel? = null
     private var currentConfig: Config? = null
@@ -40,6 +40,8 @@ class AwgManager(context: Context) {
     fun startTunnel(config: Config) {
         if (isRunning) stopTunnel()
         userRequestedStop = false
+        val configStr = config.toAwgQuickString()
+        Log.d("AwgManager", "Config toGo: $configStr")
         val tunnel = object : Tunnel {
             override fun getName(): String = tunnelName
             override fun onStateChange(newState: Tunnel.State) {
@@ -47,8 +49,6 @@ class AwgManager(context: Context) {
                     tunnelStateListener?.onUnexpectedDisconnect()
                 }
             }
-            override fun isIpv4ResolutionPreferred(): Boolean = false
-            override fun isMetered(): Boolean = false
         }
         backend.setState(tunnel, Tunnel.State.UP, config)
         currentTunnel = tunnel
