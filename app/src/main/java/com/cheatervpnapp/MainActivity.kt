@@ -3,7 +3,6 @@ package com.cheatervpnapp
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -11,24 +10,17 @@ import android.net.NetworkRequest
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.SystemClock
 import android.text.InputType
 import android.util.Log
-import android.view.Gravity
 import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.zxing.BarcodeFormat
-import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.cheatervpnapp.databinding.ActivityMainBinding
@@ -42,8 +34,6 @@ import org.amnezia.awg.backend.BackendException
 import org.amnezia.awg.config.Config
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileWriter
 import java.util.zip.Inflater
 
 class MainActivity : AppCompatActivity() {
@@ -180,7 +170,6 @@ class MainActivity : AppCompatActivity() {
             onClick = { server -> selectServer(server) },
             onLongClick = { server -> deleteServer(server) },
             onRename = { server -> showRenameDialog(server) },
-            onShare = { server -> showShareDialog(server) },
         )
         binding.rvServers.layoutManager = LinearLayoutManager(this)
         binding.rvServers.adapter = adapter
@@ -572,71 +561,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    private fun showShareDialog(server: Server) {
-        val options = arrayOf(
-            getString(R.string.share_file),
-            getString(R.string.share_qr),
-        )
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.share_config))
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> shareConfigFile(server)
-                    1 -> showConfigQr(server)
-                }
-            }
-            .show()
-    }
-
-    private fun shareConfigFile(server: Server) {
-        try {
-            val fileName = "${server.country.ifEmpty { server.name }.replace(" ", "_")}.conf"
-            val file = File(cacheDir, fileName)
-            FileWriter(file).use { it.write(server.config) }
-            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_TEXT, server.config)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(intent, getString(R.string.share_config)))
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Share failed", e)
-            Toast.makeText(this, getString(R.string.share_failed), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun showConfigQr(server: Server) {
-        try {
-            val barcodeEncoder = BarcodeEncoder()
-            val bitmap: Bitmap = barcodeEncoder.encodeBitmap(
-                server.config,
-                BarcodeFormat.QR_CODE,
-                600,
-                600,
-            )
-            val iv = ImageView(this).apply {
-                setImageBitmap(bitmap)
-                adjustViewBounds = true
-                val pad = (16 * resources.displayMetrics.density).toInt()
-                setPadding(pad, pad, pad, pad)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                )
-            }
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.share_qr_title))
-                .setView(iv)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
-        } catch (e: Exception) {
-            Log.e("MainActivity", "QR generation failed", e)
-            Toast.makeText(this, getString(R.string.share_failed), Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun selectServer(server: Server) {
