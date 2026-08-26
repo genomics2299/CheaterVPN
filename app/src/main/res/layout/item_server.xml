@@ -47,8 +47,8 @@
 
     <ImageButton
         android:id="@+id/btnRename"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_menu_edit"
         android:contentDescription="@string/rename"
@@ -57,8 +57,8 @@
 
     <ImageButton
         android:id="@+id/btnShare"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_menu_share"
         android:contentDescription="@string/share"

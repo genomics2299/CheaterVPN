@@ -13,6 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.SecureRandom
 import java.time.Instant
+import java.util.UUID
 
 object WarpConfigGenerator {
 
@@ -68,10 +69,52 @@ object WarpConfigGenerator {
             ?: queryMediaStoreFile(context)
             ?: readDirectFile()
                 ?: throw RuntimeException("API unavailable and no $FALLBACK_FILENAME found")
-        Log.d(TAG, "Read fallback config")
+        Log.d(TAG, "Read fallback config, generating new identity")
+        val newKeyPair = generateKeyPair()
+        val newPrivKey = newKeyPair.privateKey.toBase64()
+        val newPubKey = newKeyPair.publicKey.toBase64()
+        val newV4 = generateNewIPv4(text)
+        val newV6 = generateNewIPv6(text)
+        val peerPub = extractPeerPublicKey(text)
         val host = parseEndpoint(text)
         val port = parsePort(text)
-        return WarpResult(text, host, port)
+        val config = formatConfig(
+            privateKey = newPrivKey,
+            addressV4 = newV4,
+            addressV6 = newV6,
+            peerPublicKey = peerPub,
+            host = host,
+            port = port,
+        )
+        return WarpResult(config, host, port)
+    }
+
+    private fun extractPeerPublicKey(config: String): String {
+        for (line in config.lines()) {
+            if (line.trimStart().startsWith("PublicKey")) {
+                return line.substringAfter("=", "").trim()
+            }
+        }
+        return "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+    }
+
+    private fun generateNewIPv4(config: String): String {
+        val v4Regex = Regex("""(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})""")
+        val match = v4Regex.find(config) ?: return "172.16.0.2"
+        val parts = (1..4).map { match.groupValues[it].toIntOrNull() ?: 0 }
+        val random = SecureRandom()
+        val newLast = 2 + random.nextInt(252)
+        return "${parts[0]}.${parts[1]}.${parts[2]}.$newLast"
+    }
+
+    private fun generateNewIPv6(config: String): String {
+        val v6Regex = Regex("""([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}""")
+        val match = v6Regex.find(config) ?: return ""
+        val random = SecureRandom()
+        val bytes = ByteArray(8)
+        random.nextBytes(bytes)
+        val newSuffix = bytes.joinToString(":") { "%04x".format(it) }
+        return newSuffix
     }
 
     private fun readExternalFilesDir(context: Context): String? {
@@ -164,10 +207,10 @@ object WarpConfigGenerator {
     private fun register(publicKeyBase64: String): JSONObject {
         val body = JSONObject()
             .put("fcm_token", "")
-            .put("install_id", "")
+            .put("install_id", UUID.randomUUID().toString())
             .put("key", publicKeyBase64)
             .put("locale", "en_US")
-            .put("model", "Android")
+            .put("model", "Pixel 9")
             .put("tos", Instant.now().toString())
             .put("type", "Android")
 

@@ -1,9 +1,6 @@
 package com.cheatervpnapp
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -432,16 +429,12 @@ class MainActivity : AppCompatActivity() {
                     port = warpResult.port,
                     config = warpResult.config,
                 )
-                if (servers.any { it.config == server.config }) {
-                    Toast.makeText(this@MainActivity, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
-                } else {
-                    servers = servers + server
-                    serverStore.save(servers)
-                    adapter.submitList(servers)
-                    startPing(server)
-                    selectServer(server)
-                    Toast.makeText(this@MainActivity, getString(R.string.warp_added), Toast.LENGTH_SHORT).show()
-                }
+                servers = servers + server
+                serverStore.save(servers)
+                adapter.submitList(servers)
+                startPing(server)
+                selectServer(server)
+                Toast.makeText(this@MainActivity, getString(R.string.warp_added), Toast.LENGTH_SHORT).show()
             }.onFailure { e ->
                 Toast.makeText(this@MainActivity, getString(R.string.warp_failed, e.message ?: ""), Toast.LENGTH_LONG).show()
             }
@@ -583,7 +576,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showShareDialog(server: Server) {
         val options = arrayOf(
-            getString(R.string.share_copy),
             getString(R.string.share_file),
             getString(R.string.share_qr),
         )
@@ -591,19 +583,11 @@ class MainActivity : AppCompatActivity() {
             .setTitle(getString(R.string.share_config))
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> copyConfigToClipboard(server)
-                    1 -> shareConfigFile(server)
-                    2 -> showConfigQr(server)
+                    0 -> shareConfigFile(server)
+                    1 -> showConfigQr(server)
                 }
             }
             .show()
-    }
-
-    private fun copyConfigToClipboard(server: Server) {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("awg_config", server.config)
-        clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, getString(R.string.share_copy_hint), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareConfigFile(server: Server) {
