@@ -176,6 +176,8 @@ class MainActivity : AppCompatActivity() {
             configPickerLauncher.launch(arrayOf("*/*"))
         }
 
+        binding.btnWarp.setOnClickListener { generateWarpConfig() }
+
         binding.btnScanQr.setOnClickListener {
             val options = ScanOptions()
                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
@@ -399,6 +401,37 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
     }
 
+    private fun generateWarpConfig() {
+        binding.btnWarp.isEnabled = false
+        lifecycleScope.launch {
+            val result = WarpConfigGenerator.generate()
+            result.onSuccess { warpResult ->
+                val server = Server(
+                    id = System.currentTimeMillis().toString(),
+                    name = "Cloudflare WARP",
+                    country = "",
+                    countryCode = "",
+                    host = warpResult.host,
+                    port = warpResult.port,
+                    config = warpResult.config,
+                )
+                if (servers.any { it.config == server.config }) {
+                    Toast.makeText(this@MainActivity, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
+                } else {
+                    servers = servers + server
+                    serverStore.save(servers)
+                    adapter.submitList(servers)
+                    startPing(server)
+                    selectServer(server)
+                    Toast.makeText(this@MainActivity, getString(R.string.warp_added), Toast.LENGTH_SHORT).show()
+                }
+            }.onFailure { e ->
+                Toast.makeText(this@MainActivity, getString(R.string.warp_failed, e.message ?: ""), Toast.LENGTH_LONG).show()
+            }
+            binding.btnWarp.isEnabled = !isConnected
+        }
+    }
+
     private fun decodeQrConfig(contents: String): String? {
         val trimmed = contents.trim()
         configFromText(trimmed)?.let { return sanitizeConfig(it) }
@@ -614,6 +647,7 @@ class MainActivity : AppCompatActivity() {
         )
         binding.btnImportConfig.isEnabled = !isConnected
         binding.btnScanQr.isEnabled = !isConnected
+        binding.btnWarp.isEnabled = !isConnected
     }
 
     override fun onDestroy() {
