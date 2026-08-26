@@ -92,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                     if (localUri != null) {
                         val file = uriToFile(Uri.parse(localUri))
                         if (file != null && file.exists()) {
-                            updateChecker.cleanOldDownloads()
                             updateChecker.installApk(file)
                         }
                     }

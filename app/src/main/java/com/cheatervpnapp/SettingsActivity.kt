@@ -31,7 +31,6 @@ class SettingsActivity : AppCompatActivity() {
             val file = File(cacheDir, "${UpdateChecker.DOWNLOAD_DIR}/$fileName")
 
             if (file.exists() && file.length() > 0) {
-                updateChecker.cleanOldDownloads()
                 updateChecker.installApk(file)
             } else {
                 Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
