@@ -147,4 +147,5 @@
     <string name="update_notes">What\'s new:</string>
     <string name="update_confirm">Update</string>
     <string name="update_later">Later</string>
+    <string name="update_progress">%1$d%% (%2$d / %3$d KB)</string>
 </resources>
