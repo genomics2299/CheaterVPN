@@ -5,17 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.cheatervpnapp.databinding.ActivitySettingsBinding
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
 class SettingsActivity : AppCompatActivity() {
@@ -30,25 +26,15 @@ class SettingsActivity : AppCompatActivity() {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (id != downloadId) return
 
-            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val query = DownloadManager.Query().setFilterById(id)
-            val cursor: Cursor? = dm.query(query)
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val status = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                    val localUri = it.getString(it.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
-                    if (status == DownloadManager.STATUS_SUCCESSFUL && localUri != null) {
-                        val file = uriToFile(Uri.parse(localUri))
-                        if (file != null && file.exists()) {
-                            currentUpdate?.let { update ->
-                                updateChecker.cleanOldDownloads()
-                                updateChecker.installApk(file)
-                            }
-                        }
-                    } else {
-                        Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
-                    }
-                }
+            val update = currentUpdate ?: return
+            val fileName = "CheaterVPN-${update.versionName}.apk"
+            val file = File(cacheDir, "${UpdateChecker.DOWNLOAD_DIR}/$fileName")
+
+            if (file.exists() && file.length() > 0) {
+                updateChecker.cleanOldDownloads()
+                updateChecker.installApk(file)
+            } else {
+                Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -127,19 +113,4 @@ class SettingsActivity : AppCompatActivity() {
         downloadId = updateChecker.downloadAndInstall(update)
     }
 
-    private fun uriToFile(uri: Uri): File? {
-        return try {
-            if (uri.scheme == "file") {
-                File(uri.path!!)
-            } else {
-                contentResolver.openInputStream(uri)?.use { input ->
-                    val file = File(cacheDir, "update.apk")
-                    file.outputStream().use { output -> input.copyTo(output) }
-                    file
-                }
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
 }

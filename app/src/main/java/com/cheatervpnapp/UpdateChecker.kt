@@ -26,7 +26,7 @@ class UpdateChecker(private val context: Context) {
             "https://gist.githubusercontent.com/genomics2299/8ba5052000c937c82bbeaf6ff28bea82/raw/version.json"
         private const val RELEASES_URL =
             "https://api.github.com/repos/$GITHUB_REPO/releases/latest"
-        private const val DOWNLOAD_DIR = "updates"
+        const val DOWNLOAD_DIR = "updates"
     }
 
     data class UpdateInfo(
@@ -153,12 +153,13 @@ class UpdateChecker(private val context: Context) {
         val fileName = "CheaterVPN-${updateInfo.versionName}.apk"
         val dir = File(context.cacheDir, DOWNLOAD_DIR)
         dir.mkdirs()
+        val destFile = File(dir, fileName)
 
         val request = DownloadManager.Request(Uri.parse(updateInfo.downloadUrl))
             .setTitle(context.getString(R.string.update_downloading))
             .setDescription(context.getString(R.string.update_downloading_version, updateInfo.versionName))
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalFilesDir(context, null, "$DOWNLOAD_DIR/$fileName")
+            .setDestinationUri(Uri.fromFile(destFile))
             .setAllowedOverMetered(true)
             .setAllowedOverRoaming(true)
 
@@ -168,8 +169,7 @@ class UpdateChecker(private val context: Context) {
 
     fun getApkFile(updateInfo: UpdateInfo): File? {
         val fileName = "CheaterVPN-${updateInfo.versionName}.apk"
-        val externalDir = context.getExternalFilesDir(null) ?: return null
-        val file = File(externalDir, "$DOWNLOAD_DIR/$fileName")
+        val file = File(context.cacheDir, "$DOWNLOAD_DIR/$fileName")
         return if (file.exists() && file.length() > 0) file else null
     }
 
@@ -187,8 +187,7 @@ class UpdateChecker(private val context: Context) {
     }
 
     fun cleanOldDownloads() {
-        val externalDir = context.getExternalFilesDir(null) ?: return
-        val dir = File(externalDir, DOWNLOAD_DIR)
+        val dir = File(context.cacheDir, DOWNLOAD_DIR)
         if (dir.exists()) {
             dir.listFiles()?.forEach { it.delete() }
         }
