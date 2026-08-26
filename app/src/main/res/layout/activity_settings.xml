@@ -79,14 +79,17 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.button.MaterialButton
+    <ImageView
         android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/back"
-        android:textSize="13sp"
-        app:cornerRadius="28dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="35dp" />
+        android:layout_marginBottom="35dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/back"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_back" />
 
 </LinearLayout>

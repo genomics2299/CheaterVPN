@@ -253,15 +253,17 @@
             android:textSize="13sp"
             app:cornerRadius="28dp" />
 
-        <com.google.android.material.button.MaterialButton
+        <ImageView
             android:id="@+id/btnStatsBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="40dp"
-            android:text="@string/stats_back"
-            android:textSize="13sp"
-            app:cornerRadius="28dp"
-            android:layout_marginTop="8dp" />
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/stats_back"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_back" />
     </LinearLayout>
 
 </LinearLayout>

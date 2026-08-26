@@ -34,58 +34,77 @@
                 android:textColor="@android:color/darker_gray"
                 android:layout_marginTop="6dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTelegram"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:text="@string/contact_telegram"
-                android:textSize="15sp"
-                app:cornerRadius="28dp"
-                android:layout_marginTop="20dp" />
+                android:orientation="horizontal"
+                android:layout_marginTop="24dp"
+                android:gravity="center">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:text="@string/contact_email"
-                android:textSize="15sp"
-                app:cornerRadius="28dp"
-                android:layout_marginTop="20dp" />
+                <ImageView
+                    android:id="@+id/btnTelegram"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/contact_telegram"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_telegram" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVk"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:text="@string/contact_vk"
-                android:textSize="15sp"
-                app:cornerRadius="28dp"
-                android:layout_marginTop="20dp" />
+                <ImageView
+                    android:id="@+id/btnEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/contact_email"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_email" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnWhatsapp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:text="@string/contact_whatsapp"
-                android:textSize="15sp"
-                app:cornerRadius="28dp"
-                android:layout_marginTop="20dp" />
+                <ImageView
+                    android:id="@+id/btnVk"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/contact_vk"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_vk" />
+
+                <ImageView
+                    android:id="@+id/btnWhatsapp"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/contact_whatsapp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_whatsapp" />
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.button.MaterialButton
+    <ImageView
         android:id="@+id/btnContactBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:text="@string/contact_back"
-        android:textSize="13sp"
-        app:cornerRadius="28dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="35dp" />
+        android:layout_marginBottom="35dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/contact_back"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_back" />
 
 </LinearLayout>

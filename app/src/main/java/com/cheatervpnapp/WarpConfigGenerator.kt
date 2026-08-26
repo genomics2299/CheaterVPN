@@ -45,7 +45,7 @@ object WarpConfigGenerator {
             Log.d(TAG, "API success, parsing config")
             val config = body.optJSONObject("result")?.optJSONObject("config")
                 ?: body.optJSONObject("config")
-                ?: throw RuntimeException("No config in response")
+                ?: body
             val peer = config.getJSONArray("peers").getJSONObject(0)
             val peerPub = peer.getString("public_key")
             val endpoint = peer.getJSONObject("endpoint")
@@ -205,13 +205,12 @@ object WarpConfigGenerator {
             val code = conn.responseCode
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val response = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-            val json = runCatching { JSONObject(response) }.getOrNull()
-            val success = json?.optBoolean("success", false) ?: false
-            if (code !in 200..299 || !success) {
-                val errMsg = json?.optJSONArray("errors")?.optJSONObject(0)?.optString("message")
-                    ?: "HTTP $code"
-                throw RuntimeException(errMsg)
+            Log.d(TAG, "API response code=$code")
+            if (code !in 200..299) {
+                throw RuntimeException("HTTP $code")
             }
+            val json = runCatching { JSONObject(response) }.getOrNull()
+                ?: throw RuntimeException("Invalid JSON response")
             return json
         } finally {
             conn.disconnect()

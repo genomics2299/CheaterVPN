@@ -136,4 +136,15 @@
     <string name="share_qr">QR-код</string>
     <string name="share_qr_title">Сканируйте QR для импорта конфига</string>
     <string name="share_failed">Не удалось поделиться</string>
+
+    <string name="update_check">Проверить обновления</string>
+    <string name="update_available">Доступно обновление: v%1$s</string>
+    <string name="update_current">Приложение обновлено</string>
+    <string name="update_check_failed">Не удалось проверить обновления</string>
+    <string name="update_downloading">Загрузка обновления…</string>
+    <string name="update_downloading_version">Загрузка v%1$s</string>
+    <string name="update_ready">Обновление загружено. Нажмите для установки.</string>
+    <string name="update_notes">Что нового:</string>
+    <string name="update_confirm">Обновить</string>
+    <string name="update_later">Позже</string>
 </resources>
