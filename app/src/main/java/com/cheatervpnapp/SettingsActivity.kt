@@ -104,16 +104,37 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun downloadApk(update: UpdateChecker.UpdateInfo) {
         val dir = File(cacheDir, UpdateChecker.DOWNLOAD_DIR)
         dir.mkdirs()
         val file = File(dir, "CheaterVPN-${update.versionName}.apk")
 
-        val conn = URL(update.downloadUrl).openConnection()
+        var conn = URL(update.downloadUrl).openConnection() as java.net.HttpURLConnection
+        conn.connectTimeout = 15_000
+        conn.readTimeout = 15_000
+        conn.instanceFollowRedirects = true
         conn.connect()
-        val total = conn.contentLength
 
-        conn.inputStream.use { input ->
+        var total = conn.contentLength
+
+        var stream = conn.inputStream
+
+        var redirectCount = 0
+        while ((conn.responseCode == 301 || conn.responseCode == 302) && redirectCount < 5) {
+            val location = conn.getHeaderField("Location") ?: break
+            conn.disconnect()
+            conn = URL(location).openConnection() as java.net.HttpURLConnection
+            conn.connectTimeout = 15_000
+            conn.readTimeout = 15_000
+            conn.instanceFollowRedirects = true
+            conn.connect()
+            total = conn.contentLength
+            stream = conn.inputStream
+            redirectCount++
+        }
+
+        stream.use { input ->
             file.outputStream().use { output ->
                 val buffer = ByteArray(8192)
                 var downloaded = 0
@@ -133,6 +154,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
         }
+        conn.disconnect()
     }
 
     private fun showInstallOrError() {
