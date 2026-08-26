@@ -9,8 +9,6 @@ import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -24,7 +22,10 @@ class UpdateChecker(private val context: Context) {
     companion object {
         private const val TAG = "UpdateChecker"
         private const val GITHUB_REPO = "genomics2299/CheaterVPN"
-        private const val RELEASES_URL = "https://api.github.com/repos/$GITHUB_REPO/releases/latest"
+        private const val RAW_VERSION_URL =
+            "https://raw.githubusercontent.com/$GITHUB_REPO/master/app/src/main/assets/version.json"
+        private const val RELEASES_URL =
+            "https://api.github.com/repos/$GITHUB_REPO/releases/latest"
         private const val DOWNLOAD_DIR = "updates"
     }
 
@@ -35,50 +36,88 @@ class UpdateChecker(private val context: Context) {
         val releaseNotes: String,
     )
 
+    private class UpdateException(message: String) : Exception(message)
+
     suspend fun checkForUpdate(): UpdateInfo? = withContext(Dispatchers.IO) {
+        val currentCode = getCurrentVersionCode()
+
         try {
-            val conn = URL(RELEASES_URL).openConnection() as HttpURLConnection
-            conn.setRequestProperty("Accept", "application/vnd.github.v3+json")
-            conn.connectTimeout = 10_000
-            conn.readTimeout = 10_000
-            conn.connect()
-
-            if (conn.responseCode != 200) {
-                Log.w(TAG, "GitHub API returned ${conn.responseCode}")
-                return@withContext null
-            }
-
-            val body = conn.inputStream.bufferedReader().use { it.readText() }
-            val json = JSONObject(body)
-
-            val tagName = json.optString("tag_name", "")
-            val releaseNotes = json.optString("body", "")
-            val versionName = tagName.removePrefix("v").ifEmpty { return@withContext null }
-
-            val assets = json.optJSONArray("assets") ?: return@withContext null
-            val apkAsset = findApkAsset(assets) ?: return@withContext null
-
-            val downloadUrl = apkAsset.getString("browser_download_url")
-            val latestVersionCode = parseVersionCode(versionName)
-            val currentVersionCode = getCurrentVersionCode()
-
-            if (latestVersionCode <= currentVersionCode) {
-                return@withContext null
-            }
-
-            UpdateInfo(
-                versionName = versionName,
-                versionCode = latestVersionCode,
-                downloadUrl = downloadUrl,
-                releaseNotes = releaseNotes,
-            )
+            checkRawVersion(currentCode)
         } catch (e: Exception) {
-            Log.e(TAG, "Update check failed", e)
-            null
+            Log.w(TAG, "Raw version check failed: ${e.message}")
+            try {
+                checkGitHubRelease(currentCode)
+            } catch (e2: Exception) {
+                Log.e(TAG, "GitHub API check also failed: ${e2.message}")
+                throw UpdateException("Не удалось проверить обновления")
+            }
         }
     }
 
-    private fun findApkAsset(assets: JSONArray): JSONObject? {
+    private fun checkRawVersion(currentCode: Int): UpdateInfo? {
+        val conn = URL(RAW_VERSION_URL).openConnection() as HttpURLConnection
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 10_000
+        conn.connect()
+
+        if (conn.responseCode != 200) {
+            throw UpdateException("HTTP ${conn.responseCode}")
+        }
+
+        val body = conn.inputStream.bufferedReader().use { it.readText() }
+        val json = JSONObject(body)
+
+        val versionName = json.optString("version", "")
+        val remoteCode = json.optInt("versionCode", 0)
+        val downloadUrl = json.optString("downloadUrl", "")
+        val notes = json.optString("notes", "")
+
+        if (versionName.isEmpty() || downloadUrl.isEmpty()) {
+            throw UpdateException("Invalid version.json")
+        }
+
+        Log.d(TAG, "Raw check: remote=$remoteCode, local=$currentCode")
+
+        if (remoteCode <= currentCode) return null
+
+        return UpdateInfo(versionName, remoteCode, downloadUrl, notes)
+    }
+
+    private fun checkGitHubRelease(currentCode: Int): UpdateInfo? {
+        val conn = URL(RELEASES_URL).openConnection() as HttpURLConnection
+        conn.setRequestProperty("Accept", "application/vnd.github.v3+json")
+        conn.setRequestProperty("User-Agent", "CheaterVPN/1.5")
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 10_000
+        conn.connect()
+
+        if (conn.responseCode != 200) {
+            throw UpdateException("GitHub API HTTP ${conn.responseCode}")
+        }
+
+        val body = conn.inputStream.bufferedReader().use { it.readText() }
+        val json = JSONObject(body)
+
+        val tagName = json.optString("tag_name", "")
+        val releaseNotes = json.optString("body", "")
+        val versionName = tagName.removePrefix("v").ifEmpty {
+            throw UpdateException("Empty tag_name")
+        }
+
+        val assets = json.optJSONArray("assets")
+        val apkAsset = findApkAsset(assets) ?: throw UpdateException("No APK asset found")
+        val downloadUrl = apkAsset.getString("browser_download_url")
+
+        val latestCode = parseVersionCode(versionName)
+        Log.d(TAG, "GitHub API check: remote=$latestCode, local=$currentCode")
+
+        if (latestCode <= currentCode) return null
+
+        return UpdateInfo(versionName, latestCode, downloadUrl, releaseNotes)
+    }
+
+    private fun findApkAsset(assets: JSONArray?): JSONObject? {
+        if (assets == null) return null
         for (i in 0 until assets.length()) {
             val asset = assets.optJSONObject(i) ?: continue
             val name = asset.optString("name", "")

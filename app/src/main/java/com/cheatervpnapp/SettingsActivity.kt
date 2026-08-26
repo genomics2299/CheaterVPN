@@ -90,9 +90,15 @@ class SettingsActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         binding.btnCheckUpdate.isEnabled = false
         lifecycleScope.launch {
-            val update = runCatching { updateChecker.checkForUpdate() }.getOrNull()
+            val result = runCatching { updateChecker.checkForUpdate() }
             binding.btnCheckUpdate.isEnabled = true
 
+            if (result.isFailure) {
+                Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val update = result.getOrNull()
             if (update == null) {
                 Toast.makeText(this@SettingsActivity, getString(R.string.update_current), Toast.LENGTH_SHORT).show()
                 return@launch
