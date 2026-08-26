@@ -2,16 +2,21 @@ package com.cheatervpnapp
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.amnezia.awg.crypto.Key
 import org.amnezia.awg.crypto.KeyPair
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.SecureRandom
 import java.time.Instant
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
 
 object WarpConfigGenerator {
 
-    private const val API_URL = "https://api.cloudflareclient.com/v0a2158/reg"
-    private const val USER_AGENT = "okhttp/3.28.4"
+    private const val API_URL = "https://api.cloudflareclient.com/v0a1922/reg"
+    private const val USER_AGENT = "okhttp/3.12.1"
+    private const val CLIENT_VERSION = "a-6.3-1922"
 
     class WarpResult(
         val config: String,
@@ -21,9 +26,10 @@ object WarpConfigGenerator {
 
     suspend fun generate(): Result<WarpResult> = withContext(Dispatchers.IO) {
         runCatching {
-            val keyPair = KeyPair()
-            val reg = register(keyPair.publicKey.toBase64())
-            val config = reg.getJSONObject("config")
+            val keyPair = generateKeyPair()
+            val body = register(keyPair.publicKey.toBase64())
+            val config = body.optJSONObject("result")?.getJSONObject("config")
+                ?: body.getJSONObject("config")
             val peer = config.getJSONArray("peers").getJSONObject(0)
             val peerPub = peer.getString("public_key")
             val endpoint = peer.getJSONObject("endpoint")
@@ -44,6 +50,17 @@ object WarpConfigGenerator {
         }
     }
 
+    private fun generateKeyPair(): KeyPair {
+        return try {
+            KeyPair()
+        } catch (_: Exception) {
+            val random = SecureRandom()
+            val privateKeyBytes = ByteArray(32)
+            random.nextBytes(privateKeyBytes)
+            KeyPair(Key.fromBytes(privateKeyBytes))
+        }
+    }
+
     private fun register(publicKeyBase64: String): JSONObject {
         val body = JSONObject()
             .put("fcm_token", "")
@@ -54,24 +71,34 @@ object WarpConfigGenerator {
             .put("tos", Instant.now().toString())
             .put("type", "Android")
 
+        val sslContext = SSLContext.getInstance("TLSv1.2").apply {
+            init(null, null, SecureRandom())
+        }
+
         val conn = URL(API_URL).openConnection() as HttpURLConnection
         try {
             conn.requestMethod = "POST"
             conn.doOutput = true
             conn.connectTimeout = 10000
             conn.readTimeout = 15000
-            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             conn.setRequestProperty("Accept", "application/json")
             conn.setRequestProperty("User-Agent", USER_AGENT)
+            conn.setRequestProperty("CF-Client-Version", CLIENT_VERSION)
+            (conn as? HttpsURLConnection)?.sslSocketFactory = sslContext.socketFactory
             conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
 
             val code = conn.responseCode
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val response = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-            if (code !in 200..299) {
-                throw RuntimeException("HTTP $code: ${response.take(200)}")
+            val json = runCatching { JSONObject(response) }.getOrNull()
+            val success = json?.optBoolean("success", false) ?: false
+            if (code !in 200..299 || !success) {
+                val errMsg = json?.optJSONArray("errors")?.optJSONObject(0)?.optString("message")
+                    ?: "HTTP $code"
+                throw RuntimeException(errMsg)
             }
-            return JSONObject(response)
+            return json
         } finally {
             conn.disconnect()
         }
