@@ -123,4 +123,17 @@
 
     <string name="settings_btn">Settings</string>
     <string name="settings_title">Settings</string>
+
+    <string name="rename">Rename</string>
+    <string name="rename_server">Rename server</string>
+    <string name="rename_hint">Server name</string>
+    <string name="rename_saved">Name saved</string>
+    <string name="share">Share</string>
+    <string name="share_config">Share config</string>
+    <string name="share_copy">Copy config</string>
+    <string name="share_copy_hint">Text of config copied to clipboard</string>
+    <string name="share_file">Send file</string>
+    <string name="share_qr">QR code</string>
+    <string name="share_qr_title">Scan QR to import config</string>
+    <string name="share_failed">Share failed</string>
 </resources>

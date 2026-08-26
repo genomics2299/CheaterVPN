@@ -8,6 +8,8 @@ import com.cheatervpnapp.databinding.ItemServerBinding
 class ServerAdapter(
     private val onClick: (Server) -> Unit,
     private val onLongClick: (Server) -> Unit,
+    private val onRename: (Server) -> Unit,
+    private val onShare: (Server) -> Unit,
 ) : RecyclerView.Adapter<ServerAdapter.ViewHolder>() {
 
     private val servers = mutableListOf<Server>()
@@ -57,6 +59,8 @@ class ServerAdapter(
                 onLongClick(server)
                 true
             }
+            binding.btnRename.setOnClickListener { onRename(server) }
+            binding.btnShare.setOnClickListener { onShare(server) }
         }
     }
 

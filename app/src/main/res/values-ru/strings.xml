@@ -123,4 +123,17 @@
 
     <string name="settings_btn">Настройки</string>
     <string name="settings_title">Настройки</string>
+
+    <string name="rename">Переименовать</string>
+    <string name="rename_server">Переименовать сервер</string>
+    <string name="rename_hint">Название сервера</string>
+    <string name="rename_saved">Название сохранено</string>
+    <string name="share">Поделиться</string>
+    <string name="share_config">Поделиться конфигом</string>
+    <string name="share_copy">Скопировать конфиг</string>
+    <string name="share_copy_hint">Текст конфига скопирован в буфер обмена</string>
+    <string name="share_file">Отправить файл</string>
+    <string name="share_qr">QR-код</string>
+    <string name="share_qr_title">Сканируйте QR для импорта конфига</string>
+    <string name="share_failed">Не удалось поделиться</string>
 </resources>
