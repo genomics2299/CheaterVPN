@@ -23,7 +23,7 @@ class UpdateChecker(private val context: Context) {
         private const val TAG = "UpdateChecker"
         private const val GITHUB_REPO = "genomics2299/CheaterVPN"
         private const val RAW_VERSION_URL =
-            "https://gist.githubusercontent.com/genomics2299/8ba5052000c937c82bbeaf6ff28bea82/raw/version.json"
+            "https://gist.githubusercontent.com/genomics2299/ad0a1e95dacd1c996cd4ed3bdcdbe0a8/raw/version.json"
         private const val RELEASES_URL =
             "https://api.github.com/repos/$GITHUB_REPO/releases/latest"
         const val DOWNLOAD_DIR = "updates"
