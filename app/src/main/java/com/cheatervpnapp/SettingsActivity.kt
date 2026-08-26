@@ -97,6 +97,7 @@ class SettingsActivity : AppCompatActivity() {
             if (result.isSuccess) {
                 showInstallOrError()
             } else {
+                android.util.Log.e("SettingsActivity", "Download failed", result.exceptionOrNull())
                 binding.updateProgress.visibility = View.GONE
                 binding.updateProgressText.visibility = View.GONE
                 Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
@@ -110,11 +111,16 @@ class SettingsActivity : AppCompatActivity() {
         dir.mkdirs()
         val file = File(dir, "CheaterVPN-${update.versionName}.apk")
 
-        var conn = URL(update.downloadUrl).openConnection() as java.net.HttpURLConnection
+        val url = URL(update.downloadUrl)
+        android.util.Log.d("SettingsActivity", "Downloading from: $url")
+
+        var conn = url.openConnection() as java.net.HttpURLConnection
         conn.connectTimeout = 15_000
         conn.readTimeout = 15_000
         conn.instanceFollowRedirects = true
         conn.connect()
+
+        android.util.Log.d("SettingsActivity", "Response code: ${conn.responseCode}, Content-Length: ${conn.contentLength}")
 
         var total = conn.contentLength
 
@@ -123,6 +129,7 @@ class SettingsActivity : AppCompatActivity() {
         var redirectCount = 0
         while ((conn.responseCode == 301 || conn.responseCode == 302) && redirectCount < 5) {
             val location = conn.getHeaderField("Location") ?: break
+            android.util.Log.d("SettingsActivity", "Redirect $redirectCount to: $location")
             conn.disconnect()
             conn = URL(location).openConnection() as java.net.HttpURLConnection
             conn.connectTimeout = 15_000
