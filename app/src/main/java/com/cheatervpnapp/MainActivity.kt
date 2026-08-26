@@ -1,12 +1,18 @@
 package com.cheatervpnapp
 
 import android.Manifest
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.Uri
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -34,6 +40,7 @@ import org.amnezia.awg.backend.BackendException
 import org.amnezia.awg.config.Config
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.zip.Inflater
 
 class MainActivity : AppCompatActivity() {
@@ -51,8 +58,48 @@ class MainActivity : AppCompatActivity() {
     private var pingLoop: Job? = null
     private var restartJob: Job? = null
     private lateinit var connectivityManager: ConnectivityManager
+
+    private fun uriToFile(uri: Uri): File? {
+        return try {
+            if (uri.scheme == "file") {
+                File(uri.path!!)
+            } else {
+                contentResolver.openInputStream(uri)?.use { input ->
+                    val file = File(cacheDir, "update.apk")
+                    file.outputStream().use { output -> input.copyTo(output) }
+                    file
+                }
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
     private var lastNetworkKey: Long? = null
     private var lastRestartAt = 0L
+    private lateinit var updateChecker: UpdateChecker
+    private var downloadId: Long = -1L
+
+    private val downloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            if (id != downloadId) return
+            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val query = DownloadManager.Query().setFilterById(id)
+            val cursor: Cursor? = dm.query(query)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val localUri = it.getString(it.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                    if (localUri != null) {
+                        val file = uriToFile(Uri.parse(localUri))
+                        if (file != null && file.exists()) {
+                            updateChecker.cleanOldDownloads()
+                            updateChecker.installApk(file)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private companion object {
         const val RESTART_DEBOUNCE_MS = 3000L
@@ -165,6 +212,9 @@ class MainActivity : AppCompatActivity() {
         serverStore = ServerStore(this)
         killSwitchStore = KillSwitchStore(this)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
+        updateChecker = UpdateChecker(this)
+
+        registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), RECEIVER_NOT_EXPORTED)
 
         adapter = ServerAdapter(
             onClick = { server -> selectServer(server) },
@@ -221,6 +271,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         warmUpVpnService()
+
+        lifecycleScope.launch {
+            val update = runCatching { updateChecker.checkForUpdate() }.getOrNull()
+            if (update != null) {
+                val notes = update.releaseNotes.ifBlank { null }
+                val message = if (notes != null) {
+                    getString(R.string.update_available, update.versionName) + "\n\n" +
+                        getString(R.string.update_notes) + "\n" + notes
+                } else {
+                    getString(R.string.update_available, update.versionName)
+                }
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(getString(R.string.update_confirm))
+                    .setMessage(message)
+                    .setPositiveButton(getString(R.string.update_confirm)) { _, _ ->
+                        Toast.makeText(this@MainActivity, getString(R.string.update_downloading), Toast.LENGTH_SHORT).show()
+                        downloadId = updateChecker.downloadAndInstall(update)
+                    }
+                    .setNegativeButton(getString(R.string.update_later), null)
+                    .show()
+            }
+        }
 
         intent?.getStringExtra(VpnWidgetProvider.EXTRA_WIDGET_MESSAGE)?.let {
             Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
@@ -683,6 +755,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        runCatching { unregisterReceiver(downloadReceiver) }
         runCatching { connectivityManager.unregisterNetworkCallback(connectivityCallback) }
         awgManager.setTunnelStateListener(null)
         pingLoop?.cancel()
