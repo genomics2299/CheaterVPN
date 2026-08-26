@@ -118,6 +118,7 @@ class SettingsActivity : AppCompatActivity() {
         conn.connectTimeout = 15_000
         conn.readTimeout = 15_000
         conn.instanceFollowRedirects = true
+        conn.setRequestProperty("User-Agent", "CheaterVPN/1.0")
         conn.connect()
 
         android.util.Log.d("SettingsActivity", "Response code: ${conn.responseCode}, Content-Length: ${conn.contentLength}")
@@ -135,6 +136,7 @@ class SettingsActivity : AppCompatActivity() {
             conn.connectTimeout = 15_000
             conn.readTimeout = 15_000
             conn.instanceFollowRedirects = true
+            conn.setRequestProperty("User-Agent", "CheaterVPN/1.0")
             conn.connect()
             total = conn.contentLength
             stream = conn.inputStream
