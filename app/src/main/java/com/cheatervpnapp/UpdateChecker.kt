@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,7 +17,6 @@ import java.net.URL
 class UpdateChecker(private val context: Context) {
 
     companion object {
-        private const val TAG = "UpdateChecker"
         private const val GITHUB_REPO = "genomics2299/CheaterVPN"
         private const val RAW_VERSION_URL =
             "https://gist.githubusercontent.com/genomics2299/d1375f0d29a2c7f52f0002ef3ceaedc3/raw/version.json"
@@ -41,12 +39,10 @@ class UpdateChecker(private val context: Context) {
 
         try {
             checkRawVersion(currentCode)
-        } catch (e: Exception) {
-            Log.w(TAG, "Raw version check failed: ${e.message}")
+        } catch (_: Exception) {
             try {
                 checkGitHubRelease(currentCode)
-            } catch (e2: Exception) {
-                Log.e(TAG, "GitHub API check also failed: ${e2.message}")
+            } catch (_: Exception) {
                 throw UpdateException("Не удалось проверить обновления")
             }
         }
@@ -75,8 +71,6 @@ class UpdateChecker(private val context: Context) {
         if (versionName.isEmpty() || downloadUrl.isEmpty()) {
             throw UpdateException("Invalid version.json")
         }
-
-        Log.d(TAG, "Raw check: remote=$remoteCode, local=$currentCode")
 
         if (remoteCode <= currentCode) return null
 
@@ -109,8 +103,6 @@ class UpdateChecker(private val context: Context) {
         val downloadUrl = apkAsset.getString("browser_download_url")
 
         val latestCode = parseVersionCode(versionName)
-        Log.d(TAG, "GitHub API check: remote=$latestCode, local=$currentCode")
-
         if (latestCode <= currentCode) return null
 
         return UpdateInfo(versionName, latestCode, downloadUrl, releaseNotes)
