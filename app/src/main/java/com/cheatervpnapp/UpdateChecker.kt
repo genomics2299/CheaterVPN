@@ -53,9 +53,11 @@ class UpdateChecker(private val context: Context) {
     }
 
     private fun checkRawVersion(currentCode: Int): UpdateInfo? {
-        val conn = URL(RAW_VERSION_URL).openConnection() as HttpURLConnection
+        val urlWithCacheBust = "${RAW_VERSION_URL}?t=${System.currentTimeMillis()}"
+        val conn = URL(urlWithCacheBust).openConnection() as HttpURLConnection
         conn.connectTimeout = 10_000
         conn.readTimeout = 10_000
+        conn.setRequestProperty("Cache-Control", "no-cache")
         conn.connect()
 
         if (conn.responseCode != 200) {
