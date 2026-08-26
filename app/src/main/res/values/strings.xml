@@ -138,6 +138,7 @@
     <string name="share_failed">Share failed</string>
 
     <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking for updates…</string>
     <string name="update_available">Update available: v%1$s</string>
     <string name="update_current">App is up to date</string>
     <string name="update_check_failed">Failed to check for updates</string>

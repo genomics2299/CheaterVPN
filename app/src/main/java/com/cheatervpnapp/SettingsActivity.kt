@@ -1,13 +1,7 @@
 package com.cheatervpnapp
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -25,13 +19,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var updateChecker: UpdateChecker
     private var currentUpdate: UpdateChecker.UpdateInfo? = null
-    private val handler = Handler(Looper.getMainLooper())
-
-    private val downloadReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            showInstallOrError()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,13 +47,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.btnCheckUpdate.setOnClickListener { checkForUpdate() }
     }
 
-    override fun onDestroy() {
-        runCatching { unregisterReceiver(downloadReceiver) }
-        super.onDestroy()
-    }
-
     private fun checkForUpdate() {
         binding.btnCheckUpdate.isEnabled = false
+        Toast.makeText(this, getString(R.string.update_checking), Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             val result = runCatching { updateChecker.checkForUpdate() }
             binding.btnCheckUpdate.isEnabled = true

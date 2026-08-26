@@ -138,6 +138,7 @@
     <string name="share_failed">Не удалось поделиться</string>
 
     <string name="update_check">Проверить обновления</string>
+    <string name="update_checking">Проверка обновлений…</string>
     <string name="update_available">Доступно обновление: v%1$s</string>
     <string name="update_current">Приложение обновлено</string>
     <string name="update_check_failed">Не удалось проверить обновления</string>
