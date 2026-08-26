@@ -63,7 +63,7 @@
                     android:focusable="true"
                     android:contentDescription="@string/contact_btn"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/ic_internet"
+                    android:src="@drawable/ic_contact"
                     android:layout_marginEnd="24dp" />
 
                 <ImageView
