@@ -14,36 +14,22 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.cheatervpnapp.databinding.ActivitySettingsBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.net.URL
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var updateChecker: UpdateChecker
     private var currentUpdate: UpdateChecker.UpdateInfo? = null
-    private var downloadId: Long = -1L
     private val handler = Handler(Looper.getMainLooper())
-    private var progressRunnable: Runnable? = null
 
     private val downloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            if (id != downloadId) return
-            stopProgress()
-
-            val update = currentUpdate ?: return
-            val fileName = "CheaterVPN-${update.versionName}.apk"
-            val file = File(cacheDir, "${UpdateChecker.DOWNLOAD_DIR}/$fileName")
-
-            if (file.exists() && file.length() > 0) {
-                binding.updateProgressText.text = getString(R.string.update_ready)
-                updateChecker.installApk(file)
-            } else {
-                binding.updateProgress.visibility = View.GONE
-                binding.updateProgressText.visibility = View.GONE
-                Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
-            }
+            showInstallOrError()
         }
     }
 
@@ -52,8 +38,6 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         updateChecker = UpdateChecker(this)
-
-        registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), RECEIVER_EXPORTED)
 
         binding.btnBack.setOnClickListener { finish() }
 
@@ -77,7 +61,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        stopProgress()
         runCatching { unregisterReceiver(downloadReceiver) }
         super.onDestroy()
     }
@@ -123,37 +106,64 @@ class SettingsActivity : AppCompatActivity() {
         binding.updateProgress.progress = 0
         binding.updateProgressText.text = getString(R.string.update_downloading_version, update.versionName)
 
-        downloadId = updateChecker.downloadAndInstall(update)
-        startProgressPolling()
+        lifecycleScope.launch {
+            val result = runCatching {
+                withContext(Dispatchers.IO) { downloadApk(update) }
+            }
+
+            if (result.isSuccess) {
+                showInstallOrError()
+            } else {
+                binding.updateProgress.visibility = View.GONE
+                binding.updateProgressText.visibility = View.GONE
+                Toast.makeText(this@SettingsActivity, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
-    private fun startProgressPolling() {
-        progressRunnable = object : Runnable {
-            override fun run() {
-                val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                val query = DownloadManager.Query().setFilterById(downloadId)
-                val cursor = dm.query(query)
-                cursor?.use {
-                    if (it.moveToFirst()) {
-                        val total = it.getLong(it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-                        val downloaded = it.getLong(it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                        if (total > 0) {
-                            val percent = (downloaded * 100 / total).toInt()
+    private fun downloadApk(update: UpdateChecker.UpdateInfo) {
+        val dir = File(cacheDir, UpdateChecker.DOWNLOAD_DIR)
+        dir.mkdirs()
+        val file = File(dir, "CheaterVPN-${update.versionName}.apk")
+
+        val conn = URL(update.downloadUrl).openConnection()
+        conn.connect()
+        val total = conn.contentLength
+
+        conn.inputStream.use { input ->
+            file.outputStream().use { output ->
+                val buffer = ByteArray(8192)
+                var downloaded = 0
+                var read: Int
+                while (input.read(buffer).also { read = it } != -1) {
+                    output.write(buffer, 0, read)
+                    downloaded += read
+                    if (total > 0) {
+                        val percent = downloaded * 100 / total
+                        val kb = downloaded / 1024
+                        val totalKb = total / 1024
+                        runOnUiThread {
                             binding.updateProgress.progress = percent
-                            val kb = downloaded / 1024
-                            val totalKb = total / 1024
                             binding.updateProgressText.text = getString(R.string.update_progress, percent, kb, totalKb)
                         }
                     }
                 }
-                handler.postDelayed(this, 500)
             }
         }
-        handler.post(progressRunnable!!)
     }
 
-    private fun stopProgress() {
-        progressRunnable?.let { handler.removeCallbacks(it) }
-        progressRunnable = null
+    private fun showInstallOrError() {
+        val update = currentUpdate ?: return
+        val fileName = "CheaterVPN-${update.versionName}.apk"
+        val file = File(cacheDir, "${UpdateChecker.DOWNLOAD_DIR}/$fileName")
+
+        if (file.exists() && file.length() > 0) {
+            binding.updateProgressText.text = getString(R.string.update_ready)
+            updateChecker.installApk(file)
+        } else {
+            binding.updateProgress.visibility = View.GONE
+            binding.updateProgressText.visibility = View.GONE
+            Toast.makeText(this, getString(R.string.update_check_failed), Toast.LENGTH_SHORT).show()
+        }
     }
 }
