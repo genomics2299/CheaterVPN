@@ -12,13 +12,21 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.time.Instant
 import java.util.UUID
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 object WarpConfigGenerator {
 
     private const val TAG = "WarpConfig"
-    private const val API_URL = "https://api.cloudflareclient.com/v0a1922/reg"
+    private const val API_IP = "104.16.192.82"
+    private const val API_HOST = "api.cloudflareclient.com"
+    private const val API_PATH = "/v0a1922/reg"
+    private const val API_URL = "https://$API_IP$API_PATH"
     private const val USER_AGENT = "okhttp/3.12.1"
     private const val CLIENT_VERSION = "a-6.3-1922"
     private const val FALLBACK_FILENAME = "warp.conf"
@@ -172,16 +180,26 @@ object WarpConfigGenerator {
             .put("tos", Instant.now().toString())
             .put("type", "Android")
 
-        val conn = URL(API_URL).openConnection() as HttpURLConnection
+        val conn = URL(API_URL).openConnection() as HttpsURLConnection
         try {
             conn.requestMethod = "POST"
             conn.doOutput = true
-            conn.connectTimeout = 5000
-            conn.readTimeout = 5000
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+            conn.hostnameVerifier = javax.net.ssl.HostnameVerifier { _, _ -> true }
+            val trustAll = object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            }
+            val sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, arrayOf<TrustManager>(trustAll), java.security.SecureRandom())
+            conn.sslSocketFactory = sslContext.socketFactory
             conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             conn.setRequestProperty("Accept", "application/json")
             conn.setRequestProperty("User-Agent", USER_AGENT)
             conn.setRequestProperty("CF-Client-Version", CLIENT_VERSION)
+            conn.setRequestProperty("Host", API_HOST)
             conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
 
             val code = conn.responseCode
