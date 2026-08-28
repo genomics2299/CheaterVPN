@@ -6,11 +6,12 @@ import org.json.JSONObject
 
 class ServerStore(context: Context) {
 
+    private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences("servers", Context.MODE_PRIVATE)
 
     fun load(): List<Server> {
-        val json = prefs.getString(KEY, null) ?: return emptyList()
-        return runCatching {
+        val stored = runCatching {
+            val json = prefs.getString(KEY, null) ?: return@runCatching emptyList()
             val arr = JSONArray(json)
             buildList {
                 for (i in 0 until arr.length()) {
@@ -29,6 +30,11 @@ class ServerStore(context: Context) {
                 }
             }
         }.getOrDefault(emptyList())
+
+        val storedIds = stored.mapTo(HashSet()) { it.id }
+        val builtIn = BuiltInServers.load(appContext)
+            .filter { it.id !in storedIds }
+        return stored + builtIn
     }
 
     fun save(servers: List<Server>) {
