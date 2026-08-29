@@ -1,6 +1,6 @@
 {
-  "version": "1.28",
-  "versionCode": 28,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.28/app-release.apk",
-  "notes": "Добавлены встроенные серверы (Германия, Финляндия, Латвия, Нидерланды, Польша)"
+  "version": "1.29",
+  "versionCode": 29,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.29/app-release.apk",
+  "notes": "Обновлён список встроенных серверов: теперь только США (US)"
 }

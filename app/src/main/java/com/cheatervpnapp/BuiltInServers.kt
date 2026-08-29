@@ -12,11 +12,7 @@ object BuiltInServers {
     )
 
     private val specs = listOf(
-        Spec("builtin-de", "germany.conf", "Germany", "DE"),
-        Spec("builtin-fi", "finland.conf", "Finland", "FI"),
-        Spec("builtin-lv", "latvia.conf", "Latvia", "LV"),
-        Spec("builtin-nl", "netherlands.conf", "Netherlands", "NL"),
-        Spec("builtin-pl", "poland.conf", "Poland", "PL"),
+        Spec("builtin-us", "us.conf", "United States", "US"),
     )
 
     fun load(context: Context): List<Server> {
