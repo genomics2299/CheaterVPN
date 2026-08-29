@@ -77,7 +77,7 @@ class VpnTileService : TileService() {
         val tile = qsTile ?: return
         val running = AwgManager.get(this).isRunning
         tile.label = getString(R.string.tile_label)
-        tile.icon = Icon.createWithResource(this, R.drawable.ic_notification)
+        tile.icon = Icon.createWithResource(this, R.drawable.ic_tile_white)
         tile.state = if (running) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         tile.subtitle = if (running) getString(R.string.connected) else getString(R.string.disconnected)
         tile.updateTile()
