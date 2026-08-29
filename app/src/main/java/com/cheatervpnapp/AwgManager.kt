@@ -39,6 +39,18 @@ class AwgManager(context: Context) {
 
     fun startTunnel(config: Config) {
         if (isRunning) stopTunnel()
+        bringUpTunnel(config)
+    }
+
+    fun restartTunnelKeepingBlocking(config: Config) {
+        // Kill-switch aware reconnect: never tear down a still-running tunnel here,
+        // otherwise the blocking barrier (setBlocking(true) + default route) is removed
+        // and traffic can leak on the raw interface. If the tunnel dropped, bring it
+        // back up so the barrier is restored immediately.
+        if (!isRunning) bringUpTunnel(config)
+    }
+
+    private fun bringUpTunnel(config: Config) {
         userRequestedStop = false
         val configStr = config.toAwgQuickString()
         Log.d("AwgManager", "Config toGo: $configStr")

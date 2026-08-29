@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var pingJobs = mutableMapOf<String, Job>()
     private var pingLoop: Job? = null
     private var restartJob: Job? = null
+    private var killSwitchReconnectJob: Job? = null
     private lateinit var connectivityManager: ConnectivityManager
 
     private fun uriToFile(uri: Uri): File? {
@@ -265,6 +266,7 @@ class MainActivity : AppCompatActivity() {
                 if (killSwitchStore.isEnabled()) {
                     VpnNotification.showKillSwitchAlert(this@MainActivity)
                     Toast.makeText(this@MainActivity, getString(R.string.kill_switch_reconnecting), Toast.LENGTH_LONG).show()
+                    scheduleKillSwitchReconnect()
                 }
             }
         }
@@ -358,8 +360,13 @@ class MainActivity : AppCompatActivity() {
             val config = runCatching { awgManager.parseConfigFile(splitTunnelConfig(server)) }.getOrElse { return@launch }
             withContext(Dispatchers.IO) {
                 try {
-                    awgManager.stopTunnel()
-                    awgManager.startTunnel(config)
+                    if (killSwitchStore.isEnabled()) {
+                        // Preserve the blocking barrier: never stop a still-running tunnel.
+                        awgManager.restartTunnelKeepingBlocking(config)
+                    } else {
+                        awgManager.stopTunnel()
+                        awgManager.startTunnel(config)
+                    }
                     anchorCurrentNetwork()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@MainActivity, getString(R.string.vpn_restarted_network), Toast.LENGTH_SHORT).show()
@@ -373,6 +380,36 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this@MainActivity, getString(R.string.vpn_restart_failed, msg), Toast.LENGTH_LONG).show()
                     }
                 }
+            }
+        }
+    }
+
+    private fun scheduleKillSwitchReconnect() {
+        killSwitchReconnectJob?.cancel()
+        killSwitchReconnectJob = lifecycleScope.launch {
+            while (isActive && killSwitchStore.isEnabled()) {
+                if (!isConnected) return@launch
+                val server = selectedServer ?: return@launch
+                val config = runCatching { awgManager.parseConfigFile(splitTunnelConfig(server)) }.getOrNull()
+                    ?: return@launch
+                val started = withContext(Dispatchers.IO) {
+                    runCatching {
+                        awgManager.restartTunnelKeepingBlocking(config)
+                        awgManager.isRunning
+                    }.getOrDefault(false)
+                }
+                if (started) {
+                    anchorCurrentNetwork()
+                    lastRestartAt = SystemClock.elapsedRealtime()
+                    withContext(Dispatchers.Main) {
+                        if (killSwitchStore.isEnabled()) {
+                            killSwitchStore.setActive(true)
+                            VpnNotification.cancelKillSwitchAlert(this@MainActivity)
+                        }
+                    }
+                    return@launch
+                }
+                delay(1000)
             }
         }
     }
@@ -716,6 +753,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun disconnectVpn() {
         restartJob?.cancel()
+        killSwitchReconnectJob?.cancel()
         lastNetworkKey = null
         lastRestartAt = SystemClock.elapsedRealtime()
         killSwitchStore.setActive(false)
@@ -759,6 +797,7 @@ class MainActivity : AppCompatActivity() {
         awgManager.setTunnelStateListener(null)
         pingLoop?.cancel()
         restartJob?.cancel()
+        killSwitchReconnectJob?.cancel()
         pingJobs.values.forEach { it.cancel() }
         if (isConnected) {
             runCatching { awgManager.stopTunnel() }
