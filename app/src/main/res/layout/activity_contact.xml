@@ -76,10 +76,10 @@
                     android:gravity="center_vertical"
                     android:padding="14dp">
 
-                    <FrameLayout
+<FrameLayout
                         android:layout_width="42dp"
                         android:layout_height="42dp"
-                        android:background="@drawable/bg_icon_circle">
+                        android:background="@drawable/bg_circle_telegram">
 
                         <ImageView
                             android:layout_width="22dp"
@@ -87,7 +87,7 @@
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_telegram"
-                            app:tint="@color/on_secondary_container" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -143,7 +143,7 @@
                     <FrameLayout
                         android:layout_width="42dp"
                         android:layout_height="42dp"
-                        android:background="@drawable/bg_icon_circle">
+                        android:background="@drawable/bg_circle_email">
 
                         <ImageView
                             android:layout_width="22dp"
@@ -151,7 +151,7 @@
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_email"
-                            app:tint="@color/on_secondary_container" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -207,7 +207,7 @@
                     <FrameLayout
                         android:layout_width="42dp"
                         android:layout_height="42dp"
-                        android:background="@drawable/bg_icon_circle">
+                        android:background="@drawable/bg_circle_vk">
 
                         <ImageView
                             android:layout_width="22dp"
@@ -215,7 +215,7 @@
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_vk"
-                            app:tint="@color/on_secondary_container" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -271,7 +271,7 @@
                     <FrameLayout
                         android:layout_width="42dp"
                         android:layout_height="42dp"
-                        android:background="@drawable/bg_icon_circle">
+                        android:background="@drawable/bg_circle_whatsapp">
 
                         <ImageView
                             android:layout_width="22dp"
@@ -279,7 +279,7 @@
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_whatsapp"
-                            app:tint="@color/on_secondary_container" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <LinearLayout
