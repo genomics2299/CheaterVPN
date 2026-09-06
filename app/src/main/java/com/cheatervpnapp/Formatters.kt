@@ -17,6 +17,15 @@ object Formatters {
         return "%.2f GB".format(Locale.ROOT, mb / 1024.0)
     }
 
+    fun speed(bytesPerSec: Long): String {
+        if (bytesPerSec < 1024) return "$bytesPerSec B/s"
+        val kb = bytesPerSec / 1024.0
+        if (kb < 1024) return "%.1f KB/s".format(Locale.ROOT, kb)
+        val mb = kb / 1024.0
+        if (mb < 1024) return "%.1f MB/s".format(Locale.ROOT, mb)
+        return "%.2f GB/s".format(Locale.ROOT, mb / 1024.0)
+    }
+
     fun durationClock(sec: Long): String {
         val h = sec / 3600
         val m = (sec % 3600) / 60

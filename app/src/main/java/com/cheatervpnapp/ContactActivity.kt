@@ -42,7 +42,10 @@ class ContactActivity : AppCompatActivity() {
             openBrowser("https://wa.me/$phone")
         }
 
-        binding.btnContactBack.setOnClickListener { finish() }
+        binding.btnContactBack.setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }
     }
 
     private fun openBrowser(url: String) {

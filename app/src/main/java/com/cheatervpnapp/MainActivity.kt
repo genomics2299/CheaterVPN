@@ -1,6 +1,10 @@
 package com.cheatervpnapp
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -19,13 +23,14 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.text.InputType
 import android.util.Log
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -59,6 +64,11 @@ class MainActivity : AppCompatActivity() {
     private var restartJob: Job? = null
     private var killSwitchReconnectJob: Job? = null
     private lateinit var connectivityManager: ConnectivityManager
+    private var speedJob: Job? = null
+    private var ringAnimator: Animator? = null
+    private var prevRx = 0L
+    private var prevTx = 0L
+    private var prevTime = 0L
 
     private fun uriToFile(uri: Uri): File? {
         return try {
@@ -223,7 +233,11 @@ class MainActivity : AppCompatActivity() {
         )
         binding.rvServers.layoutManager = LinearLayoutManager(this)
         binding.rvServers.adapter = adapter
-        binding.rvServers.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+
+        binding.swipeRefresh.setOnRefreshListener {
+            startAllPings()
+            binding.swipeRefresh.isRefreshing = false
+        }
 
         binding.btnImportConfig.setOnClickListener {
             configPickerLauncher.launch(arrayOf("*/*"))
@@ -241,6 +255,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         binding.btnToggle.setOnClickListener {
@@ -312,6 +327,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         isConnected = awgManager.isRunning
         updateUI()
+        startSpeedLoop()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -420,6 +436,7 @@ class MainActivity : AppCompatActivity() {
         val savedId = serverStore.loadSelectedId()
         selectedServer = servers.firstOrNull { it.id == savedId }
         adapter.setSelected(selectedServer?.id)
+        updateServersEmpty()
         updateUI()
         startAllPings()
         startPingLoop()
@@ -508,6 +525,7 @@ class MainActivity : AppCompatActivity() {
         servers = servers + server
         serverStore.save(servers)
         adapter.submitList(servers)
+        updateServersEmpty()
         startPing(server)
         Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
     }
@@ -529,6 +547,7 @@ class MainActivity : AppCompatActivity() {
                 servers = servers + server
                 serverStore.save(servers)
                 adapter.submitList(servers)
+                updateServersEmpty()
                 startPing(server)
                 selectServer(server)
                 Toast.makeText(this@MainActivity, getString(R.string.warp_added), Toast.LENGTH_SHORT).show()
@@ -679,6 +698,7 @@ class MainActivity : AppCompatActivity() {
         selectedServer = server
         serverStore.saveSelectedId(server.id)
         adapter.setSelected(server.id)
+        updateUI()
         Toast.makeText(this, getString(R.string.selected_server, server.country.ifEmpty { server.name }), Toast.LENGTH_SHORT).show()
     }
 
@@ -696,6 +716,8 @@ class MainActivity : AppCompatActivity() {
         }
         adapter.submitList(servers)
         adapter.setSelected(selectedServer?.id)
+        updateServersEmpty()
+        updateUI()
         Toast.makeText(this, getString(R.string.server_deleted), Toast.LENGTH_SHORT).show()
     }
 
@@ -780,15 +802,99 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        binding.btnToggle.text = if (isConnected) getString(R.string.disconnect) else getString(R.string.connect)
-        binding.tvStatus.text = if (isConnected) getString(R.string.connected) else getString(R.string.disconnected)
-        binding.tvStatus.setTextColor(
-            if (isConnected) getColor(android.R.color.holo_green_dark)
-            else getColor(android.R.color.darker_gray)
-        )
+        if (isConnected) {
+            binding.btnToggle.setBackgroundResource(R.drawable.bg_power_button_connected)
+            binding.tvStatus.text = getString(R.string.connected)
+            binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success))
+            startPulse()
+        } else {
+            binding.btnToggle.setBackgroundResource(R.drawable.bg_power_button)
+            binding.tvStatus.text = getString(R.string.disconnected)
+            binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            stopPulse()
+        }
+        val label = selectedServer?.country?.ifEmpty { selectedServer?.name }
+        binding.tvSelectedServer.text = if (label.isNullOrEmpty()) {
+            getString(R.string.server_empty_title)
+        } else {
+            getString(R.string.selected_server_name, label)
+        }
         binding.btnImportConfig.isEnabled = !isConnected
         binding.btnScanQr.isEnabled = !isConnected
         binding.btnWarp.isEnabled = !isConnected
+    }
+
+    private fun startPulse() {
+        stopPulse()
+        val ring = binding.vPulseRing
+        ring.alpha = 0.15f
+        ring.scaleX = 0.9f
+        ring.scaleY = 0.9f
+        val scale = ObjectAnimator.ofPropertyValuesHolder(
+            ring,
+            PropertyValuesHolder.ofFloat(View.SCALE_X, 0.9f, 1.12f),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.9f, 1.12f),
+        ).apply {
+            duration = 1300
+            repeatMode = ObjectAnimator.REVERSE
+            repeatCount = ObjectAnimator.INFINITE
+        }
+        val fade = ObjectAnimator.ofFloat(ring, View.ALPHA, 0.15f, 0.5f).apply {
+            duration = 1300
+            repeatMode = ObjectAnimator.REVERSE
+            repeatCount = ObjectAnimator.INFINITE
+        }
+        ringAnimator = AnimatorSet().apply {
+            playTogether(scale, fade)
+            start()
+        }
+    }
+
+    private fun stopPulse() {
+        ringAnimator?.cancel()
+        ringAnimator = null
+        binding.vPulseRing.alpha = 0f
+    }
+
+    private fun startSpeedLoop() {
+        speedJob?.cancel()
+        prevRx = 0L
+        prevTx = 0L
+        prevTime = 0L
+        speedJob = lifecycleScope.launch {
+            while (isActive) {
+                val live = if (isConnected) awgManager.liveStats() else null
+                if (live != null) {
+                    val now = SystemClock.elapsedRealtime()
+                    if (prevTime != 0L) {
+                        val dtSec = (now - prevTime) / 1000.0
+                        if (dtSec > 0) {
+                            binding.tvSpeedDown.text = Formatters.speed(((live.rxBytes - prevRx) / dtSec).toLong().coerceAtLeast(0L))
+                            binding.tvSpeedUp.text = Formatters.speed(((live.txBytes - prevTx) / dtSec).toLong().coerceAtLeast(0L))
+                        }
+                    }
+                    binding.tvSessionRx.text = Formatters.bytes(live.rxBytes)
+                    binding.tvSessionTx.text = Formatters.bytes(live.txBytes)
+                    prevRx = live.rxBytes
+                    prevTx = live.txBytes
+                    prevTime = now
+                } else {
+                    binding.tvSpeedDown.text = getString(R.string.speed_zero)
+                    binding.tvSpeedUp.text = getString(R.string.speed_zero)
+                    binding.tvSessionRx.text = Formatters.bytes(0)
+                    binding.tvSessionTx.text = Formatters.bytes(0)
+                    prevRx = 0L
+                    prevTx = 0L
+                    prevTime = 0L
+                }
+                delay(1000)
+            }
+        }
+    }
+
+    private fun updateServersEmpty() {
+        binding.layoutServersEmpty.visibility = if (servers.isEmpty()) View.VISIBLE else View.GONE
+        binding.tvServersHint.visibility = if (servers.isEmpty()) View.GONE else View.VISIBLE
     }
 
     override fun onDestroy() {
@@ -796,9 +902,11 @@ class MainActivity : AppCompatActivity() {
         runCatching { connectivityManager.unregisterNetworkCallback(connectivityCallback) }
         awgManager.setTunnelStateListener(null)
         pingLoop?.cancel()
+        speedJob?.cancel()
         restartJob?.cancel()
         killSwitchReconnectJob?.cancel()
         pingJobs.values.forEach { it.cancel() }
+        stopPulse()
         if (isConnected) {
             runCatching { awgManager.stopTunnel() }
         }

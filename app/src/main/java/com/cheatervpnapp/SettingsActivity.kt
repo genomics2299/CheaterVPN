@@ -26,25 +26,34 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         updateChecker = UpdateChecker(this)
 
-        binding.btnBack.setOnClickListener { finish() }
+        binding.btnBack.setOnClickListener { finishWithFade() }
 
         binding.btnKillSwitch.setOnClickListener {
             startActivity(Intent(this, KillSwitchInfoActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         binding.btnSplitTunnel.setOnClickListener {
             startActivity(Intent(this, SplitTunnelActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         binding.btnStats.setOnClickListener {
             startActivity(Intent(this, StatsActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         binding.btnContact.setOnClickListener {
             startActivity(Intent(this, ContactActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         binding.btnCheckUpdate.setOnClickListener { checkForUpdate() }
+    }
+
+    private fun finishWithFade() {
+        finish()
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 
     private fun checkForUpdate() {

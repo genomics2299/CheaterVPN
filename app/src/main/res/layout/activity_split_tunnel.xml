@@ -1,10 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <ImageButton
+            android:id="@+id/btnBackToMain"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="fitCenter"
+            android:padding="12dp"
+            android:contentDescription="@string/split_tunnel_back"
+            android:src="@drawable/ic_back"
+                    app:tint="@color/on_surface" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="44dp"
+            android:gravity="center"
+            android:letterSpacing="0.02"
+            android:text="@string/split_tunnel_title"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -14,25 +46,18 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/split_tunnel_title"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp" />
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp">
 
             <TextView
                 android:id="@+id/tvHint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:text="@string/split_tunnel_hint"
                 android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginTop="6dp" />
+                android:lineSpacingExtra="2dp"
+                android:textColor="@color/text_secondary" />
 
             <RadioGroup
                 android:id="@+id/rgMode"
@@ -46,12 +71,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:minHeight="40dp"
+                    android:minHeight="44dp"
                     android:minWidth="0dp"
                     android:button="@null"
                     android:gravity="center"
                     android:paddingHorizontal="8dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="6dp"
                     android:text="@string/split_tunnel_exclude"
                     android:textAllCaps="true"
                     android:textSize="13sp"
@@ -63,7 +88,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:minHeight="40dp"
+                    android:minHeight="44dp"
                     android:minWidth="0dp"
                     android:button="@null"
                     android:gravity="center"
@@ -75,22 +100,31 @@
                     android:background="@drawable/bg_toggle_pill" />
             </RadioGroup>
 
-            <EditText
-                android:id="@+id/etSearch"
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.VPNApp.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/split_tunnel_search"
-                android:inputType="text"
-                android:imeOptions="actionSearch"
-                android:importantForAutofill="no"
-                android:autofillHints=""
-                android:singleLine="true"
-                android:maxLines="1"
-                android:drawableStart="@android:drawable/ic_menu_search"
-                android:drawablePadding="8dp"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="14dp"
+                app:strokeColor="@color/outline_variant">
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:hint="@string/split_tunnel_search"
+                    android:inputType="text"
+                    android:imeOptions="actionSearch"
+                    android:importantForAutofill="no"
+                    android:autofillHints=""
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:drawableStart="@android:drawable/ic_menu_search"
+                    android:drawablePadding="8dp"
+                    android:drawableTint="@color/text_secondary"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp" />
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 
@@ -99,22 +133,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:clipToPadding="false"
-        android:paddingBottom="8dp" />
-
-    <ImageView
-        android:id="@+id/btnBackToMain"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="35dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        android:contentDescription="@string/split_tunnel_back"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_back" />
-
+        android:paddingHorizontal="14dp"
+        android:paddingBottom="16dp" />
 </LinearLayout>

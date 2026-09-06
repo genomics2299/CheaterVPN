@@ -1,6 +1,6 @@
 {
-  "version": "1.30",
-  "versionCode": 30,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.30/app-release.apk",
-  "notes": "Исправлен Kill switch: теперь реально блокирует интернет при обрыве и мгновенно переподключается, не снимая защитный барьер"
+  "version": "1.32",
+  "versionCode": 32,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.32/app-release.apk",
+  "notes": "Полный редизайн интерфейса: Material 3 тёмно-синяя тема, анимированная кнопка подключения с индикатором, карточка скоростей, статистика с кольцевой диаграммой, pull-to-refresh, обновлённые настройки, kill switch и контакты"
 }

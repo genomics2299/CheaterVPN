@@ -124,6 +124,31 @@
     <string name="settings_btn">Настройки</string>
     <string name="settings_title">Настройки</string>
 
+    <string name="servers_label">Серверы</string>
+    <string name="server_empty_title">Нет серверов</string>
+    <string name="server_empty_text">Импортируйте конфигурацию или\nотсканируйте QR-код</string>
+    <string name="selected_server_name">Сервер: %1$s</string>
+    <string name="download_label">Скачивание</string>
+    <string name="upload_label">Загрузка</string>
+    <string name="session_rx_label">За сеанс ↓</string>
+    <string name="session_tx_label">За сеанс ↑</string>
+    <string name="speed_zero">0.0</string>
+    <string name="session_total_label">Трафик сеанса</string>
+    <string name="lifetime_total_label">Весь трафик</string>
+    <string name="current_speed_label">Текущая скорость</string>
+
+    <string name="section_connection">Подключение</string>
+    <string name="section_statistics">Статистика</string>
+    <string name="section_support">Поддержка</string>
+    <string name="settings_sub_kill_switch">Остановить утечку данных при обрыве</string>
+    <string name="settings_sub_split_tunnel">Выбрать приложения для туннеля</string>
+    <string name="settings_sub_stats">Сеансы и объём трафика</string>
+    <string name="settings_sub_update">Проверить наличие новой версии</string>
+    <string name="settings_sub_contact">Телеграм, VK, почта</string>
+    <string name="kill_switch_enabled">Kill switch включён</string>
+    <string name="kill_switch_disabled">Kill switch выключен</string>
+    <string name="server_settings_hint">Нажмите на сервер, чтобы выбрать</string>
+
     <string name="rename">Переименовать</string>
     <string name="rename_server">Переименовать сервер</string>
     <string name="rename_hint">Название сервера</string>

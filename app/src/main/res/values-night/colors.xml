@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand (night) -->
+    <color name="primary">#ADC6FF</color>
+    <color name="on_primary">#082F73</color>
+    <color name="primary_container">#2B4EA0</color>
+    <color name="on_primary_container">#D8E2FF</color>
+    <color name="primary_gradient_end">#4FA3E7</color>
+    <color name="primary_dark">#0A3C8C</color>
+
+    <color name="secondary">#C0C7DD</color>
+    <color name="on_secondary">#2C3142</color>
+    <color name="secondary_container">#424859</color>
+    <color name="on_secondary_container">#DBE2F9</color>
+
+    <color name="tertiary">#147ABB</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#0E4E7D</color>
+    <color name="on_tertiary_container">#CBE6FF</color>
+
+    <!-- Surfaces (night) -->
+    <color name="surface">#101623</color>
+    <color name="on_surface">#E2E2E9</color>
+    <color name="surface_variant">#44464F</color>
+    <color name="on_surface_variant">#C4C6D0</color>
+    <color name="background">#0A0F1C</color>
+    <color name="on_background">#E2E2E9</color>
+    <color name="outline">#8E9099</color>
+    <color name="outline_variant">#44464F</color>
+
+    <color name="status_bar">#0A0F1C</color>
+    <color name="chip_default">#1A2133</color>
+    <color name="text_secondary">#9AA0A6</color>
+
+    <!-- Status colors (night) -->
+    <color name="success">#81C995</color>
+    <color name="success_bg">#10321D</color>
+    <color name="warning">#FDCB6E</color>
+    <color name="error">#F2B8B5</color>
+    <color name="error_bg">#3C1D1B</color>
+
+    <!-- Legacy aliases (kept for existing references) -->
+    <color name="purple_200">#8C93A8</color>
+    <color name="purple_500">#ADC6FF</color>
+    <color name="purple_700">#7896E7</color>
+    <color name="teal_200">#8FC5E8</color>
+    <color name="teal_700">#4FA3E7</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

@@ -36,7 +36,7 @@ class SplitTunnelActivity : AppCompatActivity() {
         binding.rvApps.adapter = adapter
         adapter.submitList(apps)
 
-        binding.btnBackToMain.setOnClickListener { finish() }
+        binding.btnBackToMain.setOnClickListener { finishWithFade() }
 
         val mode = store.mode()
         if (mode == SplitTunnelStore.Mode.INCLUDE) {
@@ -60,6 +60,11 @@ class SplitTunnelActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
+    }
+
+    private fun finishWithFade() {
+        finish()
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 
     private fun updateModeHint(mode: SplitTunnelStore.Mode) {

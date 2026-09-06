@@ -13,8 +13,8 @@ android {
         applicationId = "com.cheatervpnapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 31
-        versionName = "1.31"
+        versionCode = 32
+        versionName = "1.32"
     }
 
     val keystorePropsFile = rootProject.file("keystore.properties")
@@ -80,6 +80,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.activity:activity-ktx:1.10.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
 

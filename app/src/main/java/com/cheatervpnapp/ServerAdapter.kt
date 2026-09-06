@@ -2,6 +2,7 @@ package com.cheatervpnapp
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.cheatervpnapp.databinding.ItemServerBinding
 
@@ -50,8 +51,22 @@ class ServerAdapter(
                 else -> "$ping ms"
             }
 
+            val ctx = binding.root.context
+            val pingColor = when {
+                server.host.isEmpty() || ping == null -> R.color.text_secondary
+                ping < 100 -> R.color.success
+                ping < 250 -> R.color.warning
+                else -> R.color.error
+            }
+            binding.tvPing.setTextColor(ContextCompat.getColor(ctx, pingColor))
+
             val selected = server.id == selectedId
-            binding.root.setBackgroundColor(if (selected) 0x220066FF.toInt() else 0x00000000)
+            binding.root.setCardBackgroundColor(
+                ContextCompat.getColor(ctx, if (selected) R.color.primary_container else R.color.surface)
+            )
+            binding.root.setStrokeColor(
+                ContextCompat.getColor(ctx, if (selected) R.color.primary else R.color.outline_variant)
+            )
 
             binding.root.setOnClickListener { onClick(server) }
             binding.root.setOnLongClickListener {

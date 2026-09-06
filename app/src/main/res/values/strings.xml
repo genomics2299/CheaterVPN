@@ -124,6 +124,31 @@
     <string name="settings_btn">Settings</string>
     <string name="settings_title">Settings</string>
 
+    <string name="servers_label">Servers</string>
+    <string name="server_empty_title">No servers</string>
+    <string name="server_empty_text">Import a configuration or\nscan a QR code</string>
+    <string name="selected_server_name">Server: %1$s</string>
+    <string name="download_label">Download</string>
+    <string name="upload_label">Upload</string>
+    <string name="session_rx_label">Session ↓</string>
+    <string name="session_tx_label">Session ↑</string>
+    <string name="speed_zero">0.0</string>
+    <string name="session_total_label">Session traffic</string>
+    <string name="lifetime_total_label">All traffic</string>
+    <string name="current_speed_label">Current speed</string>
+
+    <string name="section_connection">Connection</string>
+    <string name="section_statistics">Statistics</string>
+    <string name="section_support">Support</string>
+    <string name="settings_sub_kill_switch">Stop data leaks on drop</string>
+    <string name="settings_sub_split_tunnel">Choose apps for the tunnel</string>
+    <string name="settings_sub_stats">Sessions and traffic volume</string>
+    <string name="settings_sub_update">Check for a new version</string>
+    <string name="settings_sub_contact">Telegram, VK, email</string>
+    <string name="kill_switch_enabled">Kill switch is on</string>
+    <string name="kill_switch_disabled">Kill switch is off</string>
+    <string name="server_settings_hint">Tap a server to select it</string>
+
     <string name="rename">Rename</string>
     <string name="rename_server">Rename server</string>
     <string name="rename_hint">Server name</string>
