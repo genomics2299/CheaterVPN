@@ -360,6 +360,17 @@
                         android:textSize="12sp"
                         android:textColor="@color/text_secondary"
                         android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvProtocolVersion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

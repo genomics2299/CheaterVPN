@@ -167,6 +167,7 @@
     <string name="update_available">Доступно обновление: v%1$s</string>
     <string name="update_current">Приложение обновлено</string>
     <string name="update_check_failed">Не удалось проверить обновления</string>
+    <string name="protocol_version_label">Протокол AmneziaWG: %1$s</string>
     <string name="update_downloading">Загрузка обновления…</string>
     <string name="update_downloading_version">Загрузка v%1$s</string>
     <string name="update_ready">Обновление загружено. Нажмите для установки.</string>

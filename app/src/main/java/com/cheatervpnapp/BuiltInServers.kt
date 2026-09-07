@@ -12,7 +12,8 @@ object BuiltInServers {
     )
 
     private val specs = listOf(
-        Spec("builtin-us", "us.conf", "United States", "US"),
+        Spec("builtin-fi-lte", "LTE_FL.conf", "Finland LTE", "FI"),
+        Spec("builtin-fi-wifi", "WIFI_FL.conf", "Finland Wi-Fi", "FI"),
     )
 
     fun load(context: Context): List<Server> {

@@ -49,6 +49,17 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnCheckUpdate.setOnClickListener { checkForUpdate() }
+
+        showProtocolVersion()
+    }
+
+    private fun showProtocolVersion() {
+        val version = runCatching { AwgManager.get(this).getVersion() }.getOrNull()
+        if (version.isNullOrBlank()) return
+        binding.tvProtocolVersion.apply {
+            text = getString(R.string.protocol_version_label, version)
+            visibility = View.VISIBLE
+        }
     }
 
     private fun finishWithFade() {
