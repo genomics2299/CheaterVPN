@@ -2,6 +2,7 @@ package com.cheatervpnapp
 
 import android.content.Context
 import android.provider.Settings
+import android.util.Base64
 import android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import go.Seq
@@ -23,9 +24,8 @@ class XrayManager(context: Context) {
         if (initialized.compareAndSet(false, true)) {
             Seq.setContext(appContext)
             val assetPath = appContext.filesDir.absolutePath
-            val deviceId = runCatching {
-                Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
-            }.getOrNull() ?: ""
+            val androidId = Settings.Secure.ANDROID_ID.toByteArray(Charsets.UTF_8)
+            val deviceId = Base64.encodeToString(androidId.copyOf(32), Base64.NO_PADDING or Base64.URL_SAFE)
             Libv2ray.initCoreEnv(assetPath, deviceId)
         }
     }

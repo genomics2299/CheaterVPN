@@ -1,6 +1,6 @@
 {
-  "version": "1.37",
-  "versionCode": 37,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.37/app-release.apk",
-  "notes": "Исправлен вылет при подключении VLESS: нативные библиотеки Xray выгружаются на диск (useLegacyPackaging), как в v2rayNG"
+  "version": "1.38",
+  "versionCode": 38,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.38/app-release.apk",
+  "notes": "Исправлен вылет при подключении VLESS: корректный XUDP basekey (32 байта), как в v2rayNG"
 }
