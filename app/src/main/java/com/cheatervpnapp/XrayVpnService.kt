@@ -90,11 +90,12 @@ class XrayVpnService : VpnService() {
         super.onRevoke()
     }
 
-    override fun onDestroy() {
-        stopXray()
-        notifyDisconnected()
-        super.onDestroy()
-    }
+override fun onDestroy() {
+    val hadTunnel = tunnel != null
+    stopXray()
+    if (hadTunnel) notifyDisconnected()
+    super.onDestroy()
+}
 
     private fun notifyDisconnected() {
         val intent = Intent(this, MainActivity::class.java).apply {

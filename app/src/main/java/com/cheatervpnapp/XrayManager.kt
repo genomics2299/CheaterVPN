@@ -55,7 +55,7 @@ class XrayManager(context: Context) {
             } else {
                 false
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e("XrayManager", "startLoop failed", e)
             false
         }
