@@ -25,6 +25,7 @@ class ServerStore(context: Context) {
                             host = o.getString("host"),
                             port = o.getInt("port"),
                             config = o.getString("config"),
+                            protocol = o.optString("protocol", Server.PROTOCOL_AWG),
                         )
                     )
                 }
@@ -49,6 +50,7 @@ class ServerStore(context: Context) {
                     put("host", s.host)
                     put("port", s.port)
                     put("config", s.config)
+                    put("protocol", s.protocol)
                 }
             )
         }

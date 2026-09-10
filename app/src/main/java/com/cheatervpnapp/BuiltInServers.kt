@@ -30,6 +30,7 @@ object BuiltInServers {
                 host = endpoint?.first.orEmpty(),
                 port = endpoint?.second ?: 0,
                 config = text,
+                protocol = Server.PROTOCOL_AWG,
             )
         }
     }

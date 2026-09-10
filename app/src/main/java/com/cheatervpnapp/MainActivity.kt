@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var awgManager: AwgManager
+    private lateinit var xrayManager: XrayManager
     private lateinit var serverStore: ServerStore
     private lateinit var killSwitchStore: KillSwitchStore
     private lateinit var adapter: ServerAdapter
@@ -219,6 +220,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         awgManager = AwgManager.get(this)
+        xrayManager = XrayManager.get(this)
         serverStore = ServerStore(this)
         killSwitchStore = KillSwitchStore(this)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
@@ -325,7 +327,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        isConnected = awgManager.isRunning
+        isConnected = awgManager.isRunning || xrayManager.isRunning
         updateUI()
         startSpeedLoop()
     }
@@ -369,6 +371,7 @@ class MainActivity : AppCompatActivity() {
         restartJob = lifecycleScope.launch {
             delay(RESTART_DEBOUNCE_MS)
             if (!isConnected) return@launch
+            if (selectedServer?.isVless == true) return@launch
             if (SystemClock.elapsedRealtime() - lastRestartAt < RESTART_COOLDOWN_MS) return@launch
             if (!hasUsableUnderlyingNetwork()) return@launch
             lastRestartAt = SystemClock.elapsedRealtime()
@@ -405,6 +408,7 @@ class MainActivity : AppCompatActivity() {
         killSwitchReconnectJob = lifecycleScope.launch {
             while (isActive && killSwitchStore.isEnabled()) {
                 if (!isConnected) return@launch
+                if (selectedServer?.isVless == true) return@launch
                 val server = selectedServer ?: return@launch
                 val config = runCatching { awgManager.parseConfigFile(splitTunnelConfig(server)) }.getOrNull()
                     ?: return@launch
@@ -489,6 +493,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        if (text.trimStart().startsWith("vless://")) {
+            importVlessLink(text, displayName)
+            return
+        }
+
         val parseResult = runCatching { awgManager.parseConfigFile(text) }
         if (parseResult.isFailure) {
             Toast.makeText(this, getString(R.string.invalid_config_detail, exceptionDetail(parseResult.exceptionOrNull())), Toast.LENGTH_LONG).show()
@@ -530,6 +539,51 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
     }
 
+    private suspend fun importVlessLink(text: String, displayName: String?) {
+        val cleaned = text.trim()
+        val params = runCatching { XrayConfigBuilder.parseVlessLink(cleaned) }.getOrElse {
+            Toast.makeText(
+                this,
+                getString(R.string.invalid_config_detail, exceptionDetail(it)),
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        if (servers.any { it.config == cleaned }) {
+            Toast.makeText(this, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        var name = displayName?.substringBeforeLast('.')?.ifEmpty { null }
+            ?: params.remark.ifEmpty { "VLESS" }
+        var country = ""
+        var countryCode = ""
+        CountryResolver.resolveCountry(params.host)?.let { (c, code) ->
+            country = c
+            countryCode = code
+            name = c
+        }
+
+        val server = Server(
+            id = System.currentTimeMillis().toString(),
+            name = name,
+            country = country,
+            countryCode = countryCode,
+            host = params.host,
+            port = params.port,
+            config = cleaned,
+            protocol = Server.PROTOCOL_VLESS,
+        )
+
+        servers = servers + server
+        serverStore.save(servers)
+        adapter.submitList(servers)
+        updateServersEmpty()
+        startPing(server)
+        Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
+    }
+
     private fun generateWarpConfig() {
         binding.btnWarp.isEnabled = false
         lifecycleScope.launch {
@@ -560,6 +614,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun decodeQrConfig(contents: String): String? {
         val trimmed = contents.trim()
+        if (trimmed.startsWith("vless://")) return trimmed
         configFromText(trimmed)?.let { return sanitizeConfig(it) }
 
         val body = Regex("""^[\w+.-]+://(.+)$""").find(trimmed)?.groupValues?.get(1) ?: trimmed
@@ -729,6 +784,22 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        if (server.isVless) {
+            val configJson = runCatching {
+                XrayConfigBuilder.buildConfig(XrayConfigBuilder.parseVlessLink(server.config))
+            }.getOrElse {
+                Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
+                return
+            }
+            val intent = VpnService.prepare(this)
+            if (intent != null) {
+                vpnPermissionLauncher.launch(intent)
+            } else {
+                startVless(configJson, server)
+            }
+            return
+        }
+
         val config = runCatching { awgManager.parseConfigFile(splitTunnelConfig(server)) }.getOrElse {
             Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
             return
@@ -740,6 +811,21 @@ class MainActivity : AppCompatActivity() {
         } else {
             startTunnel(config)
         }
+    }
+
+    private fun startVless(configJson: String, server: Server) {
+        SessionTracker.start(server, 0L, 0L)
+        val serviceIntent = Intent(this, XrayVpnService::class.java)
+            .putExtra(XrayVpnService.EXTRA_CONFIG, configJson)
+        runCatching { startService(serviceIntent) }
+        isConnected = true
+        anchorCurrentNetwork()
+        lastRestartAt = SystemClock.elapsedRealtime()
+        updateUI()
+        VpnWidgetProvider.updateAllWidgets(this)
+        VpnTileService.requestUpdate(this)
+        VpnNotification.showConnected(this, server)
+        Toast.makeText(this, getString(R.string.vpn_connected), Toast.LENGTH_SHORT).show()
     }
 
     private fun startTunnel(config: Config) {
@@ -780,9 +866,17 @@ class MainActivity : AppCompatActivity() {
         lastRestartAt = SystemClock.elapsedRealtime()
         killSwitchStore.setActive(false)
         VpnNotification.cancelKillSwitchAlert(this)
+        val wasVless = selectedServer?.isVless == true
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                awgManager.stopTunnel()
+                if (wasVless) {
+                    val (rx, tx) = xrayManager.trafficStats()
+                    SessionTracker.finish(this@MainActivity, rx, tx)
+                    xrayManager.stopTunnel()
+                    runCatching { stopService(Intent(this@MainActivity, XrayVpnService::class.java)) }
+                } else {
+                    awgManager.stopTunnel()
+                }
                 withContext(Dispatchers.Main) {
                     isConnected = false
                     VpnNotification.cancel(this@MainActivity)
@@ -863,7 +957,12 @@ class MainActivity : AppCompatActivity() {
         prevTime = 0L
         speedJob = lifecycleScope.launch {
             while (isActive) {
-                val live = if (isConnected) awgManager.liveStats() else null
+                val live = if (selectedServer?.isVless == true && xrayManager.isRunning) {
+                    val (rxBytes, txBytes) = xrayManager.trafficStats()
+                    SessionTracker.snapshot(rxBytes, txBytes)
+                } else {
+                    awgManager.liveStats()
+                }
                 if (live != null) {
                     val now = SystemClock.elapsedRealtime()
                     if (prevTime != 0L) {
@@ -909,6 +1008,8 @@ class MainActivity : AppCompatActivity() {
         stopPulse()
         if (isConnected) {
             runCatching { awgManager.stopTunnel() }
+            runCatching { xrayManager.stopTunnel() }
+            runCatching { stopService(Intent(this, XrayVpnService::class.java)) }
         }
         super.onDestroy()
     }

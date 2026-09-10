@@ -8,12 +8,18 @@ data class Server(
     val host: String,
     val port: Int,
     val config: String,
+    val protocol: String = PROTOCOL_AWG,
 ) {
     fun flag(): String = flagEmoji(countryCode)
 
     fun endpointLabel(): String = if (host.isEmpty()) "—" else "$host:$port"
 
+    val isVless: Boolean get() = protocol == PROTOCOL_VLESS
+
     companion object {
+        const val PROTOCOL_AWG = "awg"
+        const val PROTOCOL_VLESS = "vless"
+
         fun parseEndpoint(configText: String): Pair<String, Int>? {
             val match = Regex("""(?im)^\s*Endpoint\s*=\s*(.+)$""").find(configText) ?: return null
             val ep = match.groupValues[1].trim()

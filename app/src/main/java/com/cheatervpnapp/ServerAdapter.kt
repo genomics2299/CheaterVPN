@@ -41,6 +41,10 @@ class ServerAdapter(
             binding.tvFlag.text = server.flag()
             binding.tvCountry.text = server.country.ifEmpty { server.name }
             binding.tvHost.text = server.endpointLabel()
+            binding.tvProtocol.text = when (server.protocol) {
+                Server.PROTOCOL_VLESS -> "VLESS"
+                else -> "AWG"
+            }
 
             val hasResult = pings.containsKey(server.id)
             val ping = pings[server.id]

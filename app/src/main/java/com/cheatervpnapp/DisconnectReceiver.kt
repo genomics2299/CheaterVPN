@@ -10,6 +10,8 @@ class DisconnectReceiver : BroadcastReceiver() {
         if (intent.action != VpnNotification.ACTION_DISCONNECT) return
 
         AwgManager.get(context).stopTunnel()
+        XrayManager.get(context).stopTunnel()
+        context.stopService(Intent(context, XrayVpnService::class.java))
         VpnNotification.cancel(context)
 
         val appIntent = Intent(context, MainActivity::class.java).apply {
