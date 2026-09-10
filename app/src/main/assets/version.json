@@ -1,6 +1,6 @@
 {
-  "version": "1.35",
-  "versionCode": 35,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.35/app-release.apk",
-  "notes": "Добавлена поддержка протокола VLESS (Reality): импорт по ссылке и QR-коду, встроенный движок Xray, использование только arm64"
+  "version": "1.36",
+  "versionCode": 36,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.36/app-release.apk",
+  "notes": "Исправлен вылет при запуске: ядро Xray теперь инициализируется только при подключении VLESS"
 }

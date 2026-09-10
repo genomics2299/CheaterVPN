@@ -12,33 +12,42 @@ import libv2ray.Libv2ray
 class XrayManager(context: Context) {
 
     private val appContext = context.applicationContext
+    private val initialized = AtomicBoolean(false)
     private var controller: CoreController? = null
     private val running = AtomicBoolean(false)
 
     @Volatile
     var stateListener: (() -> Unit)? = null
 
-    fun initialize() {
-        Seq.setContext(appContext)
-        val assetPath = appContext.filesDir.absolutePath
-        val deviceId = runCatching {
-            Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
-        }.getOrNull() ?: ""
-        Libv2ray.initCoreEnv(assetPath, deviceId)
+    private fun ensureInitialized() {
+        if (initialized.compareAndSet(false, true)) {
+            Seq.setContext(appContext)
+            val assetPath = appContext.filesDir.absolutePath
+            val deviceId = runCatching {
+                Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
+            }.getOrNull() ?: ""
+            Libv2ray.initCoreEnv(assetPath, deviceId)
+        }
     }
 
     val version: String
-        get() = runCatching { Libv2ray.checkVersionX() }.getOrNull() ?: "unknown"
+        get() {
+            return runCatching {
+                ensureInitialized()
+                Libv2ray.checkVersionX()
+            }.getOrNull() ?: "unknown"
+        }
 
     fun startTunnel(configJson: String, tunFd: Int): Boolean {
         stopTunnel()
-        val controller = Libv2ray.newCoreController(object : CoreCallbackHandler {
-            override fun startup(): Long = 0L
-            override fun shutdown(): Long = 0L
-            override fun onEmitStatus(status: Long, msg: String?): Long = 0L
-        })
-        this.controller = controller
         return try {
+            ensureInitialized()
+            val controller = Libv2ray.newCoreController(object : CoreCallbackHandler {
+                override fun startup(): Long = 0L
+                override fun shutdown(): Long = 0L
+                override fun onEmitStatus(status: Long, msg: String?): Long = 0L
+            })
+            this.controller = controller
             controller.startLoop(configJson, tunFd)
             if (controller.isRunning) {
                 running.set(true)
@@ -88,7 +97,6 @@ class XrayManager(context: Context) {
         fun get(context: Context): XrayManager =
             instance ?: synchronized(this) {
                 instance ?: XrayManager(context.applicationContext).also {
-                    it.initialize()
                     instance = it
                 }
             }

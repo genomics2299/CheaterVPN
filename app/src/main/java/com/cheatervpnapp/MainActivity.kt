@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var awgManager: AwgManager
-    private lateinit var xrayManager: XrayManager
+    private val xrayManager: XrayManager get() = XrayManager.get(this)
     private lateinit var serverStore: ServerStore
     private lateinit var killSwitchStore: KillSwitchStore
     private lateinit var adapter: ServerAdapter
@@ -220,7 +220,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         awgManager = AwgManager.get(this)
-        xrayManager = XrayManager.get(this)
         serverStore = ServerStore(this)
         killSwitchStore = KillSwitchStore(this)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
