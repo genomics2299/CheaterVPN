@@ -260,6 +260,10 @@ class MainActivity : AppCompatActivity() {
             scanLauncher.launch(options)
         }
 
+        binding.btnRefreshSubscription.setOnClickListener {
+            lifecycleScope.launch { refreshSubscription() }
+        }
+
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
@@ -601,7 +605,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun importSubscriptionUrl(url: String) {
-        val info = withContext(Dispatchers.IO) {
+        val result = fetchSubscription(url) ?: return
+        if (result.links.isEmpty()) {
+            Toast.makeText(this, getString(R.string.subscription_no_servers), Toast.LENGTH_LONG).show()
+            return
+        }
+        val (added, updated) = applySubscription(result, url, allowAdd = true)
+        Log.i("Subscription", "import: added=$added updated=$updated expire=${result.expireAt}")
+        finishSubscriptionImport(result, added, updated)
+    }
+
+    private suspend fun refreshSubscription() {
+        val server = selectedServer ?: return
+        val url = server.subscriptionUrl
+        if (url.isBlank()) {
+            Toast.makeText(this, getString(R.string.subscription_no_url), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val result = fetchSubscription(url) ?: return
+        if (result.links.isEmpty()) {
+            Toast.makeText(this, getString(R.string.subscription_no_servers), Toast.LENGTH_LONG).show()
+            return
+        }
+        val (added, updated) = applySubscription(result, url, allowAdd = false)
+        Log.i("Subscription", "refresh: added=$added updated=$updated expire=${result.expireAt}")
+        finishSubscriptionImport(result, added, updated)
+    }
+
+    private suspend fun fetchSubscription(url: String): SubscriptionInfo? {
+        return withContext(Dispatchers.IO) {
             runCatching {
                 val r = SubscriptionFetcher.fetch(url)
                 Log.i("Subscription", "fetch ok: links=${r.links.size} expire=${r.expireAt} title=${r.title}")
@@ -609,20 +641,16 @@ class MainActivity : AppCompatActivity() {
             }.onFailure { e ->
                 Log.e("Subscription", "fetch failed", e)
             }
-        }
-        info.onFailure { e ->
+        }.onFailure { e ->
             Toast.makeText(
                 this,
                 getString(R.string.subscription_fetch_failed, e.message ?: ""),
                 Toast.LENGTH_LONG
             ).show()
-            return
-        }
-        val result = info.getOrThrow()
-        if (result.links.isEmpty()) {
-            Toast.makeText(this, getString(R.string.subscription_no_servers), Toast.LENGTH_LONG).show()
-            return
-        }
+        }.getOrNull()
+    }
+
+    private suspend fun applySubscription(result: SubscriptionInfo, url: String, allowAdd: Boolean): Pair<Int, Int> {
         var added = 0
         var updated = 0
         result.links.forEachIndexed { index, link ->
@@ -651,17 +679,20 @@ class MainActivity : AppCompatActivity() {
             if (existingIdx >= 0) {
                 servers = servers.toMutableList().apply { set(existingIdx, server.copy(id = servers[existingIdx].id)) }
                 updated++
-            } else {
+            } else if (allowAdd) {
                 servers = servers + server
                 added++
             }
         }
-        Log.i("Subscription", "import: added=$added updated=$updated expire=${result.expireAt}")
+        return added to updated
+    }
+
+    private fun finishSubscriptionImport(result: SubscriptionInfo, added: Int, updated: Int) {
         serverStore.save(servers)
         adapter.submitList(servers)
         updateServersEmpty()
         servers.forEach { startPing(it) }
-        selectedServer = servers.firstOrNull { it.id == selectedServer?.id }
+        selectedServer = servers.firstOrNull { it.id == selectedServer?.id } ?: selectedServer
         val expireLabel = if (result.expireAt > 0L) formatSubscriptionDate(result.expireAt) else ""
         val toast = when {
             added > 0 -> getString(R.string.subscription_added, added, expireLabel)
@@ -984,6 +1015,7 @@ class MainActivity : AppCompatActivity() {
         val expireAt = server?.subExpireAt ?: 0L
         binding.cardServerInfo.visibility = if (expireAt > 0L) View.VISIBLE else View.GONE
         if (expireAt <= 0L) return
+        binding.btnRefreshSubscription.visibility = if (server!!.subscriptionUrl.isNotBlank()) View.VISIBLE else View.GONE
         binding.tvInfoExpire.text = formatSubscriptionDate(expireAt)
     }
 

@@ -138,6 +138,8 @@
     <string name="current_speed_label">Current speed</string>
 
     <string name="subscription_info_title">Subscription info</string>
+    <string name="subscription_refresh">Refresh subscription</string>
+    <string name="subscription_no_url">No subscription URL for this server</string>
     <string name="info_expire_label">Valid until</string>
     <string name="subscription_added">Subscription added: %1$d config(s) • till %2$s</string>
     <string name="subscription_updated">Subscription updated: valid till %1$s</string>

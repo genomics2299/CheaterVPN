@@ -138,6 +138,8 @@
     <string name="current_speed_label">Текущая скорость</string>
 
     <string name="subscription_info_title">Информация о подписке</string>
+    <string name="subscription_refresh">Обновить подписку</string>
+    <string name="subscription_no_url">Для этого сервера нет ссылки на подписку</string>
     <string name="info_expire_label">Действует до</string>
     <string name="subscription_added">Подписка добавлена: %1$d конфиг • до %2$s</string>
     <string name="subscription_updated">Подписка обновлена: действует до %1$s</string>

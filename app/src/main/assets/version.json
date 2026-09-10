@@ -1,6 +1,6 @@
 {
-  "version": "1.41",
-  "versionCode": 41,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.41/app-release.apk",
-  "notes": "Подписки: импорт по ссылке (URL) с показом даты окончания подписки (Действует до)"
+  "version": "1.42",
+  "versionCode": 42,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.42/app-release.apk",
+  "notes": "Кнопка обновления подписки (↻) в карточке «Информация о подписке»"
 }
