@@ -13,8 +13,8 @@ android {
         applicationId = "com.cheatervpnapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 38
-        versionName = "1.38"
+        versionCode = 39
+        versionName = "1.39"
     }
 
     val keystorePropsFile = rootProject.file("keystore.properties")

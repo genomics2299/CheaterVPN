@@ -6,7 +6,6 @@ import org.json.JSONObject
 
 class ServerStore(context: Context) {
 
-    private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences("servers", Context.MODE_PRIVATE)
 
     fun load(): List<Server> {
@@ -32,10 +31,7 @@ class ServerStore(context: Context) {
             }
         }.getOrDefault(emptyList())
 
-        val storedIds = stored.mapTo(HashSet()) { it.id }
-        val builtIn = BuiltInServers.load(appContext)
-            .filter { it.id !in storedIds }
-        return stored + builtIn
+        return stored
     }
 
     fun save(servers: List<Server>) {

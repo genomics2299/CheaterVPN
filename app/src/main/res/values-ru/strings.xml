@@ -149,10 +149,6 @@
     <string name="kill_switch_disabled">Kill switch выключен</string>
     <string name="server_settings_hint">Нажмите на сервер, чтобы выбрать</string>
 
-    <string name="rename">Переименовать</string>
-    <string name="rename_server">Переименовать сервер</string>
-    <string name="rename_hint">Название сервера</string>
-    <string name="rename_saved">Название сохранено</string>
     <string name="share">Поделиться</string>
     <string name="share_config">Поделиться конфигом</string>
     <string name="share_copy">Скопировать конфиг</string>

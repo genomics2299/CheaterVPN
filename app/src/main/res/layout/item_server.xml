@@ -85,16 +85,5 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginStart="10dp" />
-
-        <ImageButton
-            android:id="@+id/btnRename"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_edit"
-            android:contentDescription="@string/rename"
-            android:scaleType="centerInside"
-            android:layout_marginStart="4dp"
-            app:tint="@color/text_secondary" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

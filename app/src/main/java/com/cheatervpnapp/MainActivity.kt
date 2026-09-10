@@ -21,10 +21,8 @@ import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
-import android.text.InputType
 import android.util.Log
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -230,7 +228,6 @@ class MainActivity : AppCompatActivity() {
         adapter = ServerAdapter(
             onClick = { server -> selectServer(server) },
             onLongClick = { server -> deleteServer(server) },
-            onRename = { server -> showRenameDialog(server) },
         )
         binding.rvServers.layoutManager = LinearLayoutManager(this)
         binding.rvServers.adapter = adapter
@@ -712,36 +709,6 @@ class MainActivity : AppCompatActivity() {
                 if (idx != -1 && cursor.moveToFirst()) cursor.getString(idx) else ""
             }
         }.getOrDefault("") ?: ""
-    }
-
-    private fun showRenameDialog(server: Server) {
-        val input = EditText(this).apply {
-            hint = getString(R.string.rename_hint)
-            setText(server.country.ifEmpty { server.name })
-            inputType = InputType.TYPE_CLASS_TEXT
-            val pad = (16 * resources.displayMetrics.density).toInt()
-            setPadding(pad, pad, pad, pad)
-        }
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.rename_server))
-            .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newName = input.text.toString().trim()
-                if (newName.isNotEmpty()) {
-                    val updated = server.copy(
-                        country = newName,
-                        name = newName.ifEmpty { server.name },
-                    )
-                    servers = servers.map { if (it.id == server.id) updated else it }
-                    serverStore.save(servers)
-                    adapter.submitList(servers)
-                    adapter.setSelected(selectedServer?.id)
-                    if (selectedServer?.id == server.id) selectedServer = updated
-                    Toast.makeText(this, getString(R.string.rename_saved), Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     private fun selectServer(server: Server) {
