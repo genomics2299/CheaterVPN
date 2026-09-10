@@ -10,7 +10,11 @@ class DisconnectReceiver : BroadcastReceiver() {
         if (intent.action != VpnNotification.ACTION_DISCONNECT) return
 
         AwgManager.get(context).stopTunnel()
-        XrayManager.get(context).stopTunnel()
+        runCatching {
+            context.startService(
+                Intent(context, XrayVpnService::class.java).setAction(XrayVpnService.ACTION_STOP)
+            )
+        }
         context.stopService(Intent(context, XrayVpnService::class.java))
         VpnNotification.cancel(context)
 

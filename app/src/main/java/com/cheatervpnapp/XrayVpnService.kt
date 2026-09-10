@@ -2,6 +2,12 @@ package com.cheatervpnapp
 
 import android.content.Intent
 import android.net.VpnService
+import android.os.Bundle
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
+import android.os.Message
+import android.os.Messenger
 import android.os.ParcelFileDescriptor
 import android.util.Log
 
@@ -10,6 +16,16 @@ class XrayVpnService : VpnService() {
     companion object {
         const val EXTRA_CONFIG = "extra_xray_config"
         const val ACTION_STOP = "com.cheatervpnapp.ACTION_XRAY_STOP"
+        const val ACTION_BIND = "com.cheatervpnapp.ACTION_BIND_XRAY"
+
+        const val MSG_QUERY_STATE = 1
+        const val MSG_QUERY_STATS = 2
+        const val MSG_STATE_RESPONSE = 3
+        const val MSG_STATS_RESPONSE = 4
+
+        const val KEY_RUNNING = "xray_running"
+        const val KEY_RX = "xray_rx"
+        const val KEY_TX = "xray_tx"
 
         @Volatile
         private var lastConfigJson: String? = null
@@ -17,9 +33,36 @@ class XrayVpnService : VpnService() {
 
     private var tunnel: ParcelFileDescriptor? = null
 
+    private val messengerHandler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            val manager = XrayManager.get(this@XrayVpnService)
+            when (msg.what) {
+                MSG_QUERY_STATE -> {
+                    val out = Message.obtain(null, MSG_STATE_RESPONSE)
+                    out.data = Bundle().apply { putBoolean(KEY_RUNNING, manager.isRunning) }
+                    msg.replyTo?.send(out)
+                }
+                MSG_QUERY_STATS -> {
+                    val (rx, tx) = manager.trafficStats()
+                    val out = Message.obtain(null, MSG_STATS_RESPONSE)
+                    out.data = Bundle().apply {
+                        putLong(KEY_RX, rx)
+                        putLong(KEY_TX, tx)
+                    }
+                    msg.replyTo?.send(out)
+                }
+            }
+        }
+    }
+    private val messenger = Messenger(messengerHandler)
+
     override fun onCreate() {
         super.onCreate()
         XrayManager.get(this)
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return if (intent?.action == ACTION_BIND) messenger.binder else super.onBind(intent)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -90,12 +133,12 @@ class XrayVpnService : VpnService() {
         super.onRevoke()
     }
 
-override fun onDestroy() {
-    val hadTunnel = tunnel != null
-    stopXray()
-    if (hadTunnel) notifyDisconnected()
-    super.onDestroy()
-}
+    override fun onDestroy() {
+        val hadTunnel = tunnel != null
+        stopXray()
+        if (hadTunnel) notifyDisconnected()
+        super.onDestroy()
+    }
 
     private fun notifyDisconnected() {
         val intent = Intent(this, MainActivity::class.java).apply {

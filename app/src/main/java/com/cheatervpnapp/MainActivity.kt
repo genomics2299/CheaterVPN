@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var awgManager: AwgManager
-    private val xrayManager: XrayManager get() = XrayManager.get(this)
+    private lateinit var xrayBridge: XrayBridge
     private lateinit var serverStore: ServerStore
     private lateinit var killSwitchStore: KillSwitchStore
     private lateinit var adapter: ServerAdapter
@@ -218,6 +218,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         awgManager = AwgManager.get(this)
+        xrayBridge = XrayBridge(this)
+        xrayBridge.onStateChanged = { running ->
+            if (isConnected != running) {
+                isConnected = running
+                updateUI()
+                VpnWidgetProvider.updateAllWidgets(this)
+                VpnTileService.requestUpdate(this)
+            }
+        }
         serverStore = ServerStore(this)
         killSwitchStore = KillSwitchStore(this)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
@@ -323,7 +332,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        isConnected = awgManager.isRunning || xrayManager.isRunning
+        isConnected = awgManager.isRunning || xrayBridge.isVpnRunning
+        if (selectedServer?.isVless == true) {
+            xrayBridge.bind()
+            xrayBridge.queryState()
+            xrayBridge.queryStats()
+        }
         updateUI()
         startSpeedLoop()
     }
@@ -784,6 +798,8 @@ class MainActivity : AppCompatActivity() {
         val serviceIntent = Intent(this, XrayVpnService::class.java)
             .putExtra(XrayVpnService.EXTRA_CONFIG, configJson)
         runCatching { startService(serviceIntent) }
+        xrayBridge.bind()
+        xrayBridge.queryStats()
         isConnected = true
         anchorCurrentNetwork()
         lastRestartAt = SystemClock.elapsedRealtime()
@@ -836,10 +852,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 if (wasVless) {
-                    val (rx, tx) = xrayManager.trafficStats()
+                    val (rx, tx) = xrayBridge.trafficStats()
                     SessionTracker.finish(this@MainActivity, rx, tx)
-                    xrayManager.stopTunnel()
-                    runCatching { stopService(Intent(this@MainActivity, XrayVpnService::class.java)) }
+                    xrayBridge.stop()
                 } else {
                     awgManager.stopTunnel()
                 }
@@ -923,8 +938,10 @@ class MainActivity : AppCompatActivity() {
         prevTime = 0L
         speedJob = lifecycleScope.launch {
             while (isActive) {
-                val live = if (selectedServer?.isVless == true && xrayManager.isRunning) {
-                    val (rxBytes, txBytes) = xrayManager.trafficStats()
+                val live = if (selectedServer?.isVless == true && isConnected) {
+                    xrayBridge.bind()
+                    xrayBridge.queryStats()
+                    val (rxBytes, txBytes) = xrayBridge.trafficStats()
                     SessionTracker.snapshot(rxBytes, txBytes)
                 } else {
                     awgManager.liveStats()
@@ -974,9 +991,9 @@ class MainActivity : AppCompatActivity() {
         stopPulse()
         if (isConnected) {
             runCatching { awgManager.stopTunnel() }
-            runCatching { xrayManager.stopTunnel() }
-            runCatching { stopService(Intent(this, XrayVpnService::class.java)) }
+            if (selectedServer?.isVless == true) xrayBridge.stop()
         }
+        xrayBridge.unbind()
         super.onDestroy()
     }
 }

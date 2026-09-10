@@ -1,6 +1,6 @@
 {
-  "version": "1.39",
-  "versionCode": 39,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.39/app-release.apk",
-  "notes": "Удалены встроенные конфиги; убран карандаш (переименование) из списка серверов"
+  "version": "1.40",
+  "versionCode": 40,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.40/app-release.apk",
+  "notes": "Исправлен вылет приложения (SIGABRT, конфликт двух Go-рантаймов): Xray вынесен в отдельный процесс :daemon, как в v2rayNG"
 }
