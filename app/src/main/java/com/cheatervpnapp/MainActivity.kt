@@ -502,9 +502,15 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.empty_config), Toast.LENGTH_SHORT).show()
             return
         }
+        val trimmed = text.trim()
 
-        if (text.trimStart().startsWith("vless://")) {
-            importVlessLink(text, displayName)
+        if (trimmed.startsWith("vless://")) {
+            importVlessLink(trimmed, displayName)
+            return
+        }
+
+        if ((trimmed.startsWith("http://") || trimmed.startsWith("https://")) && !trimmed.contains('\n')) {
+            importSubscriptionUrl(trimmed)
             return
         }
 
@@ -594,6 +600,78 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
     }
 
+    private suspend fun importSubscriptionUrl(url: String) {
+        val info = withContext(Dispatchers.IO) {
+            runCatching {
+                val r = SubscriptionFetcher.fetch(url)
+                Log.i("Subscription", "fetch ok: links=${r.links.size} expire=${r.expireAt} title=${r.title}")
+                r
+            }.onFailure { e ->
+                Log.e("Subscription", "fetch failed", e)
+            }
+        }
+        info.onFailure { e ->
+            Toast.makeText(
+                this,
+                getString(R.string.subscription_fetch_failed, e.message ?: ""),
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        val result = info.getOrThrow()
+        if (result.links.isEmpty()) {
+            Toast.makeText(this, getString(R.string.subscription_no_servers), Toast.LENGTH_LONG).show()
+            return
+        }
+        var added = 0
+        var updated = 0
+        result.links.forEachIndexed { index, link ->
+            val params = runCatching { XrayConfigBuilder.parseVlessLink(link) }.getOrNull() ?: return@forEachIndexed
+            var name = params.remark.ifEmpty { "VLESS" }
+            var country = ""
+            var countryCode = ""
+            CountryResolver.resolveCountry(params.host)?.let { (c, code) ->
+                country = c
+                countryCode = code
+                name = c
+            }
+            val server = Server(
+                id = System.currentTimeMillis().toString() + index,
+                name = name,
+                country = country,
+                countryCode = countryCode,
+                host = params.host,
+                port = params.port,
+                config = link,
+                protocol = Server.PROTOCOL_VLESS,
+                subscriptionUrl = url,
+                subExpireAt = result.expireAt,
+            )
+            val existingIdx = servers.indexOfFirst { it.config == link }
+            if (existingIdx >= 0) {
+                servers = servers.toMutableList().apply { set(existingIdx, server.copy(id = servers[existingIdx].id)) }
+                updated++
+            } else {
+                servers = servers + server
+                added++
+            }
+        }
+        Log.i("Subscription", "import: added=$added updated=$updated expire=${result.expireAt}")
+        serverStore.save(servers)
+        adapter.submitList(servers)
+        updateServersEmpty()
+        servers.forEach { startPing(it) }
+        selectedServer = servers.firstOrNull { it.id == selectedServer?.id }
+        val expireLabel = if (result.expireAt > 0L) formatSubscriptionDate(result.expireAt) else ""
+        val toast = when {
+            added > 0 -> getString(R.string.subscription_added, added, expireLabel)
+            updated > 0 -> getString(R.string.subscription_updated, expireLabel)
+            else -> getString(R.string.config_imported)
+        }
+        updateUI()
+        Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
+    }
+
     private fun generateWarpConfig() {
         binding.btnWarp.isEnabled = false
         lifecycleScope.launch {
@@ -625,6 +703,7 @@ class MainActivity : AppCompatActivity() {
     private fun decodeQrConfig(contents: String): String? {
         val trimmed = contents.trim()
         if (trimmed.startsWith("vless://")) return trimmed
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed
         configFromText(trimmed)?.let { return sanitizeConfig(it) }
 
         val body = Regex("""^[\w+.-]+://(.+)$""").find(trimmed)?.groupValues?.get(1) ?: trimmed
@@ -897,6 +976,20 @@ class MainActivity : AppCompatActivity() {
         binding.btnImportConfig.isEnabled = !isConnected
         binding.btnScanQr.isEnabled = !isConnected
         binding.btnWarp.isEnabled = !isConnected
+        updateServerInfo()
+    }
+
+    private fun updateServerInfo() {
+        val server = selectedServer
+        val expireAt = server?.subExpireAt ?: 0L
+        binding.cardServerInfo.visibility = if (expireAt > 0L) View.VISIBLE else View.GONE
+        if (expireAt <= 0L) return
+        binding.tvInfoExpire.text = formatSubscriptionDate(expireAt)
+    }
+
+    private fun formatSubscriptionDate(expireAtSeconds: Long): String {
+        val date = java.util.Date(expireAtSeconds * 1000L)
+        return java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault()).format(date)
     }
 
     private fun startPulse() {

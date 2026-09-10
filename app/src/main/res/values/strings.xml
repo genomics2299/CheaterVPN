@@ -137,6 +137,13 @@
     <string name="lifetime_total_label">All traffic</string>
     <string name="current_speed_label">Current speed</string>
 
+    <string name="subscription_info_title">Subscription info</string>
+    <string name="info_expire_label">Valid until</string>
+    <string name="subscription_added">Subscription added: %1$d config(s) • till %2$s</string>
+    <string name="subscription_updated">Subscription updated: valid till %1$s</string>
+    <string name="subscription_fetch_failed">Subscription failed: %1$s</string>
+    <string name="subscription_no_servers">No supported servers in the subscription</string>
+
     <string name="section_connection">Connection</string>
     <string name="section_statistics">Statistics</string>
     <string name="section_support">Support</string>

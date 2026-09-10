@@ -9,6 +9,8 @@ data class Server(
     val port: Int,
     val config: String,
     val protocol: String = PROTOCOL_AWG,
+    val subscriptionUrl: String = "",
+    val subExpireAt: Long = 0L,
 ) {
     fun flag(): String = flagEmoji(countryCode)
 

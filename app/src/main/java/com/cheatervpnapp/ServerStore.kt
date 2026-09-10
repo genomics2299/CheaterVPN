@@ -25,6 +25,8 @@ class ServerStore(context: Context) {
                             port = o.getInt("port"),
                             config = o.getString("config"),
                             protocol = o.optString("protocol", Server.PROTOCOL_AWG),
+                            subscriptionUrl = o.optString("subscriptionUrl", ""),
+                            subExpireAt = o.optLong("subExpireAt", 0L),
                         )
                     )
                 }
@@ -47,6 +49,8 @@ class ServerStore(context: Context) {
                     put("port", s.port)
                     put("config", s.config)
                     put("protocol", s.protocol)
+                    put("subscriptionUrl", s.subscriptionUrl)
+                    put("subExpireAt", s.subExpireAt)
                 }
             )
         }

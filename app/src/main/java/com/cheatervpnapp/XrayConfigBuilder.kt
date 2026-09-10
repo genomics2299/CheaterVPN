@@ -17,6 +17,9 @@ object XrayConfigBuilder {
         val shortId: String,
         val fingerprint: String,
         val remark: String,
+        val network: String,
+        val encryption: String,
+        val spx: String,
     )
 
     class VlessParseException(message: String) : Exception(message)
@@ -65,6 +68,9 @@ object XrayConfigBuilder {
             shortId = params["sid"] ?: "",
             fingerprint = params["fp"] ?: "",
             remark = remark,
+            network = params["type"] ?: "tcp",
+            encryption = params["encryption"] ?: "none",
+            spx = params["spx"] ?: "",
         )
     }
 

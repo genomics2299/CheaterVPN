@@ -137,6 +137,13 @@
     <string name="lifetime_total_label">Весь трафик</string>
     <string name="current_speed_label">Текущая скорость</string>
 
+    <string name="subscription_info_title">Информация о подписке</string>
+    <string name="info_expire_label">Действует до</string>
+    <string name="subscription_added">Подписка добавлена: %1$d конфиг • до %2$s</string>
+    <string name="subscription_updated">Подписка обновлена: действует до %1$s</string>
+    <string name="subscription_fetch_failed">Не удалось получить подписку: %1$s</string>
+    <string name="subscription_no_servers">В подписке нет поддерживаемых серверов</string>
+
     <string name="section_connection">Подключение</string>
     <string name="section_statistics">Статистика</string>
     <string name="section_support">Поддержка</string>
