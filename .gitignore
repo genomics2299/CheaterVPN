@@ -13,3 +13,6 @@ captures/
 *.keystore
 keystore.properties
 .keystore_pw.txt
+
+# local scratch file
+info
