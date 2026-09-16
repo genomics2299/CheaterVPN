@@ -1,6 +1,6 @@
 {
-  "version": "1.43",
-  "versionCode": 43,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.43/app-release.apk",
-  "notes": "Поддержка Hysteria2 (hysteria2://): импорт, подключение через Xray. Раздельное туннелирование для VLESS/Hysteria2 (исключить/только выбранные приложения)"
+  "version": "1.44",
+  "versionCode": 44,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.44/app-release.apk",
+  "notes": "Исправлен сканер QR: добавлено разрешение CAMERA в манифест"
 }
