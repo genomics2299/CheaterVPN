@@ -43,6 +43,7 @@
     <string name="notif_channel">Статус VPN</string>
     <string name="notif_channel_desc">Показывается, когда VPN подключён</string>
     <string name="notif_title">VPN подключён</string>
+    <string name="notif_connecting">Подключение…</string>
     <string name="notif_disconnect_action">Отключить</string>
 
     <string name="vpn_permission_required">Требуется разрешение VPN</string>

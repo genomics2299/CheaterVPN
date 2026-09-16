@@ -43,6 +43,7 @@
     <string name="notif_channel">VPN status</string>
     <string name="notif_channel_desc">Shows when the VPN is connected</string>
     <string name="notif_title">VPN connected</string>
+    <string name="notif_connecting">Connecting…</string>
     <string name="notif_disconnect_action">Disconnect</string>
 
     <string name="vpn_permission_required">VPN permission required</string>

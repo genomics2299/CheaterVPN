@@ -1,6 +1,6 @@
 {
-  "version": "1.44",
-  "versionCode": 44,
-  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.44/app-release.apk",
-  "notes": "Исправлен сканер QR: добавлено разрешение CAMERA в манифест"
+  "version": "1.45",
+  "versionCode": 45,
+  "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.45/app-release.apk",
+  "notes": "Исправлено подключение Hysteria2/VLESS: XrayVpnService теперь foreground service (Android 14+)"
 }

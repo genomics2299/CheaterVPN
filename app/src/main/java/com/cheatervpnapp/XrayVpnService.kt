@@ -1,7 +1,9 @@
 package com.cheatervpnapp
 
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
@@ -59,6 +61,16 @@ class XrayVpnService : VpnService() {
     override fun onCreate() {
         super.onCreate()
         XrayManager.get(this)
+        val notification = VpnNotification.connectingNotification(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                VpnNotification.NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        } else {
+            startForeground(VpnNotification.NOTIFICATION_ID, notification)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

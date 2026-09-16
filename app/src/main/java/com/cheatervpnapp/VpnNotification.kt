@@ -43,6 +43,19 @@ object VpnNotification {
         }
     }
 
+    fun connectingNotification(context: Context): android.app.Notification {
+        ensureChannel(context)
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.notif_title))
+            .setContentText(context.getString(R.string.notif_connecting))
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
     fun showConnected(context: Context, server: Server) {
         ensureChannel(context)
         val nm = NotificationManagerCompat.from(context)
