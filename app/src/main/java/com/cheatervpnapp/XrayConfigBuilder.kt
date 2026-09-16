@@ -32,6 +32,8 @@ object XrayConfigBuilder {
         val insecure: Boolean,
         val alpn: List<String>,
         val pinSHA256: String,
+        val obfs: String,
+        val obfsPassword: String,
         val remark: String,
     )
 
@@ -139,6 +141,8 @@ object XrayConfigBuilder {
             insecure = insecure,
             alpn = alpn,
             pinSHA256 = params["pinSHA256"] ?: "",
+            obfs = params["obfs"] ?: "",
+            obfsPassword = params["obfs-password"] ?: "",
             remark = remark,
         )
     }
@@ -158,6 +162,8 @@ object XrayConfigBuilder {
         } else if (params.security == "tls") {
             val tls = JSONObject()
             if (params.sni.isNotBlank()) tls.put("serverName", params.sni)
+            if (params.fingerprint.isNotBlank()) tls.put("fingerprint", params.fingerprint)
+            if (params.flow == "xtls-rprx-vision") tls.put("fingerprint", "chrome")
             streamSettings.put("tlsSettings", tls)
         }
 
@@ -198,16 +204,23 @@ object XrayConfigBuilder {
             tlsSettings.put("pinnedPeerCertificateChainSha256", JSONArray().put(params.pinSHA256))
         }
 
+        val hysteriaSettings = JSONObject()
+            .put("version", 2)
+            .put("auth", params.auth)
+        if (params.obfs.isNotBlank() && params.obfsPassword.isNotBlank()) {
+            hysteriaSettings.put(
+                "obfs",
+                JSONObject()
+                    .put("type", params.obfs)
+                    .put("password", params.obfsPassword)
+            )
+        }
+
         val streamSettings = JSONObject()
             .put("network", "hysteria")
             .put("security", "tls")
             .put("tlsSettings", tlsSettings)
-            .put(
-                "hysteriaSettings",
-                JSONObject()
-                    .put("version", 2)
-                    .put("auth", params.auth)
-            )
+            .put("hysteriaSettings", hysteriaSettings)
 
         val proxyOutbound = JSONObject()
             .put("tag", "proxy")
