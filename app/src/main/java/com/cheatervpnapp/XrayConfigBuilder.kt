@@ -24,31 +24,40 @@ object XrayConfigBuilder {
 
     class VlessParseException(message: String) : Exception(message)
 
-    fun parseVlessLink(link: String): VlessParams {
-        val trimmed = link.trim()
-        if (!trimmed.startsWith("vless://")) throw VlessParseException("Not a VLESS link")
-        val afterScheme = trimmed.removePrefix("vless://")
-        val hashIdx = afterScheme.indexOf('#')
-        val remark = if (hashIdx >= 0) {
-            Uri.decode(afterScheme.substring(hashIdx + 1)).trim()
-        } else ""
-        val rest = if (hashIdx >= 0) afterScheme.substring(0, hashIdx) else afterScheme
-        val qIdx = rest.indexOf('?')
-        val addrPart = if (qIdx >= 0) rest.substring(0, qIdx) else rest
-        val query = if (qIdx >= 0) rest.substring(qIdx + 1) else ""
+    data class Hysteria2Params(
+        val auth: String,
+        val host: String,
+        val port: Int,
+        val sni: String,
+        val insecure: Boolean,
+        val alpn: List<String>,
+        val pinSHA256: String,
+        val remark: String,
+    )
 
-        val atIdx = addrPart.lastIndexOf('@')
-        if (atIdx <= 0) throw VlessParseException("Invalid address part")
-        val uuid = addrPart.substring(0, atIdx)
-        val hostPort = addrPart.substring(atIdx + 1)
-        val idx = hostPort.lastIndexOf(':')
-        if (idx <= 0) throw VlessParseException("Invalid host:port")
-        val host = hostPort.substring(0, idx).trim()
-        val port = hostPort.substring(idx + 1).trim().toIntOrNull()
-            ?: throw VlessParseException("Invalid port")
+    class Hysteria2ParseException(message: String) : Exception(message)
 
-        if (uuid.isBlank() || host.isBlank()) throw VlessParseException("Missing uuid or host")
+    private fun parseHostPort(holder: String, description: String): Pair<String, Int> {
+        val h = holder.trim()
+        if (h.startsWith("[")) {
+            val close = h.indexOf(']')
+            if (close == -1) throw VlessParseException("Invalid $description")
+            val host = h.substring(1, close)
+            val port = h.substring(close + 1).removePrefix(":").trim().trimEnd('/').toIntOrNull()
+                ?: throw VlessParseException("Invalid $description port")
+            if (host.isBlank()) throw VlessParseException("Missing host in $description")
+            return host to port
+        }
+        val idx = h.lastIndexOf(':')
+        if (idx <= 0) throw VlessParseException("Invalid $description")
+        val host = h.substring(0, idx).trim()
+        val port = h.substring(idx + 1).trim().trimEnd('/').toIntOrNull()
+            ?: throw VlessParseException("Invalid $description port")
+        if (host.isBlank()) throw VlessParseException("Missing host in $description")
+        return host to port
+    }
 
+    private fun parseQuery(query: String): Map<String, String> {
         val params = mutableMapOf<String, String>()
         query.split('&').forEach { pair ->
             val eq = pair.indexOf('=')
@@ -56,6 +65,36 @@ object XrayConfigBuilder {
                 params[pair.substring(0, eq)] = Uri.decode(pair.substring(eq + 1))
             }
         }
+        return params
+    }
+
+    private fun splitLink(link: String): Triple<String, String, String> {
+        val trimmed = link.trim()
+        val hashIdx = trimmed.indexOf('#')
+        val remark = if (hashIdx >= 0) {
+            Uri.decode(trimmed.substring(hashIdx + 1)).trim()
+        } else ""
+        val rest = if (hashIdx >= 0) trimmed.substring(0, hashIdx) else trimmed
+        val qIdx = rest.indexOf('?')
+        val addrPart = if (qIdx >= 0) rest.substring(0, qIdx) else rest
+        val query = if (qIdx >= 0) rest.substring(qIdx + 1) else ""
+        return Triple(addrPart, query, remark)
+    }
+
+    fun parseVlessLink(link: String): VlessParams {
+        val trimmed = link.trim()
+        if (!trimmed.startsWith("vless://")) throw VlessParseException("Not a VLESS link")
+        val afterScheme = trimmed.removePrefix("vless://")
+        val (addrPart0, query0, remark0) = splitLink(afterScheme)
+        val addrPart = addrPart0
+        val atIdx0 = addrPart.lastIndexOf('@')
+        if (atIdx0 <= 0) throw VlessParseException("Invalid address part")
+        val uuid = addrPart.substring(0, atIdx0)
+        val (host, port) = parseHostPort(addrPart.substring(atIdx0 + 1), "host:port")
+
+        if (uuid.isBlank()) throw VlessParseException("Missing uuid or host")
+
+        val params = parseQuery(query0)
 
         return VlessParams(
             uuid = uuid,
@@ -67,10 +106,40 @@ object XrayConfigBuilder {
             publicKey = params["pbk"] ?: "",
             shortId = params["sid"] ?: "",
             fingerprint = params["fp"] ?: "",
-            remark = remark,
+            remark = remark0,
             network = params["type"] ?: "tcp",
             encryption = params["encryption"] ?: "none",
             spx = params["spx"] ?: "",
+        )
+    }
+
+    fun parseHysteria2Link(link: String): Hysteria2Params {
+        val trimmed = link.trim()
+        if (!trimmed.startsWith("hysteria2://")) throw Hysteria2ParseException("Not a Hysteria2 link")
+        val afterScheme = trimmed.removePrefix("hysteria2://")
+        val (addrPart, query, remark) = splitLink(afterScheme)
+
+        val atIdx = addrPart.lastIndexOf('@')
+        if (atIdx <= 0) throw Hysteria2ParseException("Invalid address part")
+        val auth = Uri.decode(addrPart.substring(0, atIdx)).trim()
+        val (host, port) = parseHostPort(addrPart.substring(atIdx + 1), "host:port")
+
+        if (auth.isBlank() || host.isBlank()) throw Hysteria2ParseException("Missing auth or host")
+
+        val params = parseQuery(query)
+        val insecureValue = params["insecure"] ?: params["allowInsecure"] ?: ""
+        val insecure = insecureValue == "1" || insecureValue.equals("true", ignoreCase = true)
+        val alpn = (params["alpn"] ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+        return Hysteria2Params(
+            auth = auth,
+            host = host,
+            port = port,
+            sni = params["sni"] ?: "",
+            insecure = insecure,
+            alpn = alpn,
+            pinSHA256 = params["pinSHA256"] ?: "",
+            remark = remark,
         )
     }
 
@@ -115,6 +184,47 @@ object XrayConfigBuilder {
             )
             .put("streamSettings", streamSettings)
 
+        return baseConfig(proxyOutbound)
+    }
+
+    fun buildHysteria2Config(params: Hysteria2Params): String {
+        val tlsSettings = JSONObject()
+            .put("serverName", if (params.sni.isNotBlank()) params.sni else params.host)
+            .put("allowInsecure", params.insecure)
+        if (params.alpn.isNotEmpty()) {
+            tlsSettings.put("alpn", JSONArray().apply { params.alpn.forEach { put(it) } })
+        }
+        if (params.pinSHA256.isNotBlank()) {
+            tlsSettings.put("pinnedPeerCertificateChainSha256", JSONArray().put(params.pinSHA256))
+        }
+
+        val streamSettings = JSONObject()
+            .put("network", "hysteria")
+            .put("security", "tls")
+            .put("tlsSettings", tlsSettings)
+            .put(
+                "hysteriaSettings",
+                JSONObject()
+                    .put("version", 2)
+                    .put("auth", params.auth)
+            )
+
+        val proxyOutbound = JSONObject()
+            .put("tag", "proxy")
+            .put("protocol", "hysteria2")
+            .put(
+                "settings",
+                JSONObject()
+                    .put("version", 2)
+                    .put("address", params.host)
+                    .put("port", params.port)
+            )
+            .put("streamSettings", streamSettings)
+
+        return baseConfig(proxyOutbound)
+    }
+
+    private fun baseConfig(proxyOutbound: JSONObject): String {
         val directOutbound = JSONObject()
             .put("protocol", "freedom")
             .put(

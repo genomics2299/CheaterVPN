@@ -42,6 +42,7 @@ class ServerAdapter(
             binding.tvHost.text = server.endpointLabel()
             binding.tvProtocol.text = when (server.protocol) {
                 Server.PROTOCOL_VLESS -> "VLESS"
+                Server.PROTOCOL_HYSTERIA2 -> "Hysteria2"
                 else -> "AWG"
             }
 

@@ -18,9 +18,12 @@ data class Server(
 
     val isVless: Boolean get() = protocol == PROTOCOL_VLESS
 
+    val isXray: Boolean get() = protocol == PROTOCOL_VLESS || protocol == PROTOCOL_HYSTERIA2
+
     companion object {
         const val PROTOCOL_AWG = "awg"
         const val PROTOCOL_VLESS = "vless"
+        const val PROTOCOL_HYSTERIA2 = "hysteria2"
 
         fun parseEndpoint(configText: String): Pair<String, Int>? {
             val match = Regex("""(?im)^\s*Endpoint\s*=\s*(.+)$""").find(configText) ?: return null

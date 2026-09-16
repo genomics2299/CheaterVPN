@@ -337,7 +337,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isConnected = awgManager.isRunning || xrayBridge.isVpnRunning
-        if (selectedServer?.isVless == true) {
+        if (selectedServer?.isXray == true) {
             xrayBridge.bind()
             xrayBridge.queryState()
             xrayBridge.queryStats()
@@ -385,7 +385,7 @@ class MainActivity : AppCompatActivity() {
         restartJob = lifecycleScope.launch {
             delay(RESTART_DEBOUNCE_MS)
             if (!isConnected) return@launch
-            if (selectedServer?.isVless == true) return@launch
+            if (selectedServer?.isXray == true) return@launch
             if (SystemClock.elapsedRealtime() - lastRestartAt < RESTART_COOLDOWN_MS) return@launch
             if (!hasUsableUnderlyingNetwork()) return@launch
             lastRestartAt = SystemClock.elapsedRealtime()
@@ -422,7 +422,7 @@ class MainActivity : AppCompatActivity() {
         killSwitchReconnectJob = lifecycleScope.launch {
             while (isActive && killSwitchStore.isEnabled()) {
                 if (!isConnected) return@launch
-                if (selectedServer?.isVless == true) return@launch
+                if (selectedServer?.isXray == true) return@launch
                 val server = selectedServer ?: return@launch
                 val config = runCatching { awgManager.parseConfigFile(splitTunnelConfig(server)) }.getOrNull()
                     ?: return@launch
@@ -510,6 +510,11 @@ class MainActivity : AppCompatActivity() {
 
         if (trimmed.startsWith("vless://")) {
             importVlessLink(trimmed, displayName)
+            return
+        }
+
+        if (trimmed.startsWith("hysteria2://")) {
+            importHysteria2Link(trimmed, displayName)
             return
         }
 
@@ -604,6 +609,51 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
     }
 
+    private suspend fun importHysteria2Link(text: String, displayName: String?) {
+        val cleaned = text.trim()
+        val params = runCatching { XrayConfigBuilder.parseHysteria2Link(cleaned) }.getOrElse {
+            Toast.makeText(
+                this,
+                getString(R.string.invalid_config_detail, exceptionDetail(it)),
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        if (servers.any { it.config == cleaned }) {
+            Toast.makeText(this, getString(R.string.config_imported), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        var name = displayName?.substringBeforeLast('.')?.ifEmpty { null }
+            ?: params.remark.ifEmpty { "Hysteria2" }
+        var country = ""
+        var countryCode = ""
+        CountryResolver.resolveCountry(params.host)?.let { (c, code) ->
+            country = c
+            countryCode = code
+            name = c
+        }
+
+        val server = Server(
+            id = System.currentTimeMillis().toString(),
+            name = name,
+            country = country,
+            countryCode = countryCode,
+            host = params.host,
+            port = params.port,
+            config = cleaned,
+            protocol = Server.PROTOCOL_HYSTERIA2,
+        )
+
+        servers = servers + server
+        serverStore.save(servers)
+        adapter.submitList(servers)
+        updateServersEmpty()
+        startPing(server)
+        Toast.makeText(this, getString(R.string.server_added), Toast.LENGTH_SHORT).show()
+    }
+
     private suspend fun importSubscriptionUrl(url: String) {
         val result = fetchSubscription(url) ?: return
         if (result.links.isEmpty()) {
@@ -654,11 +704,25 @@ class MainActivity : AppCompatActivity() {
         var added = 0
         var updated = 0
         result.links.forEachIndexed { index, link ->
-            val params = runCatching { XrayConfigBuilder.parseVlessLink(link) }.getOrNull() ?: return@forEachIndexed
-            var name = params.remark.ifEmpty { "VLESS" }
+            val isH2 = link.trim().startsWith("hysteria2://")
+            val parsedHost: String
+            val parsedPort: Int
+            val remark: String
+            if (isH2) {
+                val p = runCatching { XrayConfigBuilder.parseHysteria2Link(link) }.getOrNull() ?: return@forEachIndexed
+                parsedHost = p.host
+                parsedPort = p.port
+                remark = p.remark
+            } else {
+                val p = runCatching { XrayConfigBuilder.parseVlessLink(link) }.getOrNull() ?: return@forEachIndexed
+                parsedHost = p.host
+                parsedPort = p.port
+                remark = p.remark
+            }
+            var name = remark.ifEmpty { if (isH2) "Hysteria2" else "VLESS" }
             var country = ""
             var countryCode = ""
-            CountryResolver.resolveCountry(params.host)?.let { (c, code) ->
+            CountryResolver.resolveCountry(parsedHost)?.let { (c, code) ->
                 country = c
                 countryCode = code
                 name = c
@@ -668,10 +732,10 @@ class MainActivity : AppCompatActivity() {
                 name = name,
                 country = country,
                 countryCode = countryCode,
-                host = params.host,
-                port = params.port,
+                host = parsedHost,
+                port = parsedPort,
                 config = link,
-                protocol = Server.PROTOCOL_VLESS,
+                protocol = if (isH2) Server.PROTOCOL_HYSTERIA2 else Server.PROTOCOL_VLESS,
                 subscriptionUrl = url,
                 subExpireAt = result.expireAt,
             )
@@ -734,6 +798,7 @@ class MainActivity : AppCompatActivity() {
     private fun decodeQrConfig(contents: String): String? {
         val trimmed = contents.trim()
         if (trimmed.startsWith("vless://")) return trimmed
+        if (trimmed.startsWith("hysteria2://")) return trimmed
         if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed
         configFromText(trimmed)?.let { return sanitizeConfig(it) }
 
@@ -874,9 +939,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (server.isVless) {
+        if (server.isXray) {
             val configJson = runCatching {
-                XrayConfigBuilder.buildConfig(XrayConfigBuilder.parseVlessLink(server.config))
+                if (server.protocol == Server.PROTOCOL_HYSTERIA2) {
+                    XrayConfigBuilder.buildHysteria2Config(XrayConfigBuilder.parseHysteria2Link(server.config))
+                } else {
+                    XrayConfigBuilder.buildConfig(XrayConfigBuilder.parseVlessLink(server.config))
+                }
             }.getOrElse {
                 Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
                 return
@@ -958,10 +1027,10 @@ class MainActivity : AppCompatActivity() {
         lastRestartAt = SystemClock.elapsedRealtime()
         killSwitchStore.setActive(false)
         VpnNotification.cancelKillSwitchAlert(this)
-        val wasVless = selectedServer?.isVless == true
+        val wasXray = selectedServer?.isXray == true
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                if (wasVless) {
+                if (wasXray) {
                     val (rx, tx) = xrayBridge.trafficStats()
                     SessionTracker.finish(this@MainActivity, rx, tx)
                     xrayBridge.stop()
@@ -1063,7 +1132,7 @@ class MainActivity : AppCompatActivity() {
         prevTime = 0L
         speedJob = lifecycleScope.launch {
             while (isActive) {
-                val live = if (selectedServer?.isVless == true && isConnected) {
+                val live = if (selectedServer?.isXray == true && isConnected) {
                     xrayBridge.bind()
                     xrayBridge.queryStats()
                     val (rxBytes, txBytes) = xrayBridge.trafficStats()
@@ -1116,7 +1185,7 @@ class MainActivity : AppCompatActivity() {
         stopPulse()
         if (isConnected) {
             runCatching { awgManager.stopTunnel() }
-            if (selectedServer?.isVless == true) xrayBridge.stop()
+            if (selectedServer?.isXray == true) xrayBridge.stop()
         }
         xrayBridge.unbind()
         super.onDestroy()

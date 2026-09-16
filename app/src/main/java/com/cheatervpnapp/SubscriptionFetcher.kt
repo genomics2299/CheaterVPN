@@ -62,7 +62,7 @@ object SubscriptionFetcher {
         val text = tryBase64(trimmed) ?: trimmed
         return text.lineSequence()
             .map { it.trim() }
-            .filter { it.startsWith("vless://") }
+            .filter { it.startsWith("vless://") || it.startsWith("hysteria2://") }
             .distinct()
             .toList()
     }

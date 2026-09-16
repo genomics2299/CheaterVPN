@@ -101,8 +101,18 @@ class XrayVpnService : VpnService() {
             .addDnsServer("1.1.1.1")
             .addDnsServer("1.0.0.1")
 
-        runCatching { builder.addDisallowedApplication(packageName) }
-        runCatching { builder.addDisallowedApplication("org.amnezia.awg.backend") }
+        val store = SplitTunnelStore(this)
+        val apps = store.apps()
+
+        if (apps.isEmpty() || store.mode() == SplitTunnelStore.Mode.EXCLUDE) {
+            runCatching { builder.addDisallowedApplication(packageName) }
+            runCatching { builder.addDisallowedApplication("org.amnezia.awg.backend") }
+            if (store.mode() == SplitTunnelStore.Mode.EXCLUDE) {
+                apps.forEach { app -> runCatching { builder.addDisallowedApplication(app) } }
+            }
+        } else {
+            apps.forEach { app -> runCatching { builder.addAllowedApplication(app) } }
+        }
 
         val fd = try {
             builder.establish()
