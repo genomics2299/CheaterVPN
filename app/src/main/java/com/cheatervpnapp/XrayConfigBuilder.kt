@@ -1,4 +1,4 @@
-package com.cheatervpnapp
+﻿package com.cheatervpnapp
 
 import android.net.Uri
 import org.json.JSONArray
@@ -193,28 +193,20 @@ object XrayConfigBuilder {
         return baseConfig(proxyOutbound)
     }
 
-    fun buildHysteria2Config(params: Hysteria2Params): String {
+    fun buildHysteria2Config(params: Hysteria2Params, pinnedSha256: String = ""): String {
         val tlsSettings = JSONObject()
             .put("serverName", if (params.sni.isNotBlank()) params.sni else params.host)
-            .put("allowInsecure", params.insecure)
         if (params.alpn.isNotEmpty()) {
             tlsSettings.put("alpn", JSONArray().apply { params.alpn.forEach { put(it) } })
         }
-        if (params.pinSHA256.isNotBlank()) {
-            tlsSettings.put("pinnedPeerCertificateChainSha256", JSONArray().put(params.pinSHA256))
+        val pin = params.pinSHA256.ifBlank { pinnedSha256 }
+        if (pin.isNotBlank()) {
+            tlsSettings.put("pinnedPeerCertSha256", pin)
         }
 
         val hysteriaSettings = JSONObject()
             .put("version", 2)
             .put("auth", params.auth)
-        if (params.obfs.isNotBlank() && params.obfsPassword.isNotBlank()) {
-            hysteriaSettings.put(
-                "obfs",
-                JSONObject()
-                    .put("type", params.obfs)
-                    .put("password", params.obfsPassword)
-            )
-        }
 
         val streamSettings = JSONObject()
             .put("network", "hysteria")
@@ -222,9 +214,26 @@ object XrayConfigBuilder {
             .put("tlsSettings", tlsSettings)
             .put("hysteriaSettings", hysteriaSettings)
 
+        if (params.obfs.isNotBlank() && params.obfsPassword.isNotBlank()) {
+            streamSettings.put(
+                "finalmask",
+                JSONObject().put(
+                    "udp",
+                    JSONArray().put(
+                        JSONObject()
+                            .put("type", params.obfs)
+                            .put(
+                                "settings",
+                                JSONObject().put("password", params.obfsPassword)
+                            )
+                    )
+                )
+            )
+        }
+
         val proxyOutbound = JSONObject()
             .put("tag", "proxy")
-            .put("protocol", "hysteria2")
+            .put("protocol", "hysteria")
             .put(
                 "settings",
                 JSONObject()

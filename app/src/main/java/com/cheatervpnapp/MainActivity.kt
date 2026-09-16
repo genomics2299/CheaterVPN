@@ -933,6 +933,66 @@ class MainActivity : AppCompatActivity() {
 
     private fun splitTunnelConfig(server: Server): String = awgManager.buildConfigForServer(server)
 
+    private fun connectXrayServer(server: Server) {
+        if (server.protocol == Server.PROTOCOL_HYSTERIA2) {
+            val params = runCatching { XrayConfigBuilder.parseHysteria2Link(server.config) }.getOrElse {
+                Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
+                return
+            }
+            if (params.insecure && params.pinSHA256.isBlank()) {
+                val sni = params.sni.ifBlank { params.host }
+                lifecycleScope.launch {
+                    val sha256 = withContext(Dispatchers.IO) {
+                        XrayManager.get(this@MainActivity).fetchQuicCertSha256(params.host, params.port, sni)
+                    }
+                    if (sha256.isNullOrBlank()) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.insecure_cert_fetch_failed),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@launch
+                    }
+                    val configJson = runCatching {
+                        XrayConfigBuilder.buildHysteria2Config(params, sha256)
+                    }.getOrElse {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.invalid_config),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@launch
+                    }
+                    startXrayVpn(configJson, server)
+                }
+                return
+            }
+            val configJson = runCatching { XrayConfigBuilder.buildHysteria2Config(params) }.getOrElse {
+                Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
+                return
+            }
+            startXrayVpn(configJson, server)
+            return
+        }
+
+        val configJson = runCatching {
+            XrayConfigBuilder.buildConfig(XrayConfigBuilder.parseVlessLink(server.config))
+        }.getOrElse {
+            Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
+            return
+        }
+        startXrayVpn(configJson, server)
+    }
+
+    private fun startXrayVpn(configJson: String, server: Server) {
+        val intent = VpnService.prepare(this)
+        if (intent != null) {
+            vpnPermissionLauncher.launch(intent)
+        } else {
+            startVless(configJson, server)
+        }
+    }
+
     private fun connectVpn() {
         val server = selectedServer ?: run {
             Toast.makeText(this, getString(R.string.select_server_first), Toast.LENGTH_SHORT).show()
@@ -940,22 +1000,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (server.isXray) {
-            val configJson = runCatching {
-                if (server.protocol == Server.PROTOCOL_HYSTERIA2) {
-                    XrayConfigBuilder.buildHysteria2Config(XrayConfigBuilder.parseHysteria2Link(server.config))
-                } else {
-                    XrayConfigBuilder.buildConfig(XrayConfigBuilder.parseVlessLink(server.config))
-                }
-            }.getOrElse {
-                Toast.makeText(this, getString(R.string.invalid_config), Toast.LENGTH_SHORT).show()
-                return
-            }
-            val intent = VpnService.prepare(this)
-            if (intent != null) {
-                vpnPermissionLauncher.launch(intent)
-            } else {
-                startVless(configJson, server)
-            }
+            connectXrayServer(server)
             return
         }
 

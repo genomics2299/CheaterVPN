@@ -72,6 +72,23 @@ class XrayManager(context: Context) {
     val isRunning: Boolean
         get() = running.get() && runCatching { controller?.isRunning == true }.getOrDefault(false)
 
+    fun fetchQuicCertSha256(address: String, port: Int, serverName: String, timeoutMs: Long = 5000L): String? {
+        ensureInitialized()
+        val request = org.json.JSONObject()
+            .put("address", address)
+            .put("port", port)
+            .put("serverName", serverName)
+            .put("timeoutMs", timeoutMs)
+        val resultJson = runCatching { Libv2ray.fetchQuicCertSha256(request.toString()) }.getOrNull() ?: return null
+        val result = runCatching { org.json.JSONObject(resultJson) }.getOrNull() ?: return null
+        val error = result.optString("error", "")
+        if (error.isNotBlank()) {
+            Log.w("XrayManager", "fetchQuicCertSha256 error: $error")
+            return null
+        }
+        return result.optString("sha256", "").ifBlank { null }
+    }
+
     fun trafficStats(): Pair<Long, Long> {
         val controller = this.controller ?: return 0L to 0L
         if (!running.get()) return 0L to 0L
