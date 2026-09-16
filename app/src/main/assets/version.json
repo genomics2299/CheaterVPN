@@ -1,6 +1,6 @@
-﻿{
-  "version": "1.47",
+{
   "versionCode": 47,
+  "version": "1.47",
   "downloadUrl": "https://github.com/genomics2299/CheaterVPN/releases/download/v1.47/app-release.apk",
-  "notes": "Исправлено подключение Hysteria2: автоматический TLS-pinning сертификата (fetchQuicCertSha256) для insecure-серверов"
+  "notes": "Исправлено подключение Hysteria2: автоматический TLS-pinning (fetchQuicCertSha256 -> pinnedPeerCertSha256) вместо insecure-режима"
 }
